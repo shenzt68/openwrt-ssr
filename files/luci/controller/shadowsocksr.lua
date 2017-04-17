@@ -91,13 +91,18 @@ elseif set == "ip_data" then
  end
  luci.sys.exec("rm -f /tmp/china_ssr.txt ")
 else
+  local need_process = 0
   if nixio.fs.access("/usr/bin/wget-ssl") then
-  refresh_cmd="wget --no-check-certificate -O - https://easylist-downloads.adblockplus.org/easylistchina+easylist.txt | grep ^\\|\\|[^\\*]*\\^$ | sed -e 's:||:address\\=\\/:' -e 's:\\^:/127\\.0\\.0\\.1:' > /tmp/ad.conf"
+  refresh_cmd="wget-ssl --no-check-certificate -O - https://easylist-downloads.adblockplus.org/easylistchina+easylist.txt > /tmp/adnew.conf"
+  need_process = 1
  else
   refresh_cmd="wget -O /tmp/ad.conf http://iytc.net/tools/ad.conf"
  end
  sret=luci.sys.call(refresh_cmd .. " 2>/dev/null")
  if sret== 0 then
+  if need_process == 1 then
+    luci.sys.call("/usr/bin/ssr-ad")
+  end
   icount = luci.sys.exec("cat /tmp/ad.conf | wc -l")
   if tonumber(icount)>1000 then
    if nixio.fs.access("/etc/dnsmasq.ssr/ad.conf") then

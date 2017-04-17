@@ -211,6 +211,7 @@ gen_include() {
 		echo 'COMMIT'
 	}
 	cat <<-EOF >>$FWI
+	iptables-save -c | grep -v "SS_SPEC" | iptables-restore -c
 	iptables-restore -n <<-EOT
 	$(extract_rules nat)
 	$(extract_rules mangle)

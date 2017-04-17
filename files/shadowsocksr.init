@@ -336,6 +336,7 @@ iptables-save -t filter | grep SSR-SERVER-RULE|sed -e "s/^-A INPUT/-I INPUT/"
 echo 'COMMIT'
 }
 	cat <<-EOF >>$FWI
+	iptables-save -c | grep -v "SSR-SERVER" | iptables-restore -c
 	iptables-restore -n <<-EOT
 	$(extract_rules)
 	EOT
@@ -401,13 +402,14 @@ start() {
 	case "$(uci_get_by_type global tunnel_enable)" in
 		1|on|true|yes|enabled)
 			start_tunnel
-			mkdir -p /tmp/dnsmasq.d
-			cat > /tmp/dnsmasq.d/dnsmasq-ssr.conf <<EOF
-conf-dir=/etc/dnsmasq.ssr
-EOF
-			/etc/init.d/dnsmasq restart
 			;;
 	esac
+	else
+		mkdir -p /tmp/dnsmasq.d
+		cat > /tmp/dnsmasq.d/dnsmasq-ssr.conf <<EOF
+conf-dir=/etc/dnsmasq.ssr
+EOF
+		/etc/init.d/dnsmasq restart
 	fi
 	
 	fi
@@ -422,6 +424,11 @@ EOF
 	fi
 	fi
 	
+}
+
+boot() {
+	sleep 5
+	start
 }
 
 stop() {
