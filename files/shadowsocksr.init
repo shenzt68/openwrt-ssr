@@ -427,8 +427,7 @@ EOF
 }
 
 boot() {
-	sleep 5
-	start
+	(sleep 5 && start >/dev/null 2>&1) &
 }
 
 stop() {
