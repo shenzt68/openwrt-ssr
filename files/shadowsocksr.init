@@ -263,8 +263,11 @@ start_redir() {
 	#deal with dns
 	if  [ -n "$gfw_enable" ] ;then
 	 if [ "$(uci_get_by_type global pdnsd_enable)" != "1" ] ;then
-	  service_start /usr/bin/ssr-tunnel -c $CONFIG_FILE -b 0.0.0.0 -u -l 5353 -L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) -f /var/run/ssr-dns.pid
-	  dns_enable_flag=1
+	  # set ssrdns_disable to 1 when using chinadns or unbound
+	  if [ "$(uci_get_by_type global ssrdns_disable)" != "1" ] ;then
+	   service_start /usr/bin/ssr-tunnel -c $CONFIG_FILE -b 0.0.0.0 -u -l 5353 -L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) -f /var/run/ssr-dns.pid
+	   dns_enable_flag=1
+	  fi
 	 else
 	  local dnsstr="$(uci_get_by_type global tunnel_forward 8.8.4.4:53)"
 	  local dnsserver=`echo "$dnsstr"|awk -F ':'  '{print $1}'`
