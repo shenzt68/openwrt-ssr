@@ -23,7 +23,6 @@ end
 m = Map(shadowsocksr, translate("ShadowSocksR Client"))
 
 local server_table = {}
-local arp_table = luci.sys.net.arptable() or {}
 local encrypt_methods = {
 	"table",
 	"rc4",
@@ -252,6 +251,9 @@ o.rmempty = false
 
 o = s:taboption("lan_ac", DynamicList, "lan_ac_ips", translate("LAN Host List"))
 o.datatype = "ipaddr"
-for _, v in ipairs(arp_table) do o:value(v["IP address"]) end
-
+luci.ip.neighbors({ family = 4 }, function(entry)
+       if entry.reachable then
+               o:value(entry.dest:string())
+       end
+end)
 return m

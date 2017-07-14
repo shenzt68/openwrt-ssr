@@ -20,7 +20,6 @@ end
 
 
 local server_table = {}
-local arp_table = luci.sys.net.arptable() or {}
 local encrypt_methods = {
 	"table",
 	"rc4",
