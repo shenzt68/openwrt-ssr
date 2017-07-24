@@ -375,6 +375,7 @@ start_local() {
 	/usr/bin/ssr-local -c $CONFIG_SOCK5_FILE -u  \
 		-l $(uci_get_by_type socks5_proxy local_port 1080) \
 		-b $(uci_get_by_type socks5_proxy local_address 0.0.0.0) \
+		-L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) \
 		-f /var/run/ssr-local.pid
 	local_enable=1	
 }
