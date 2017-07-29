@@ -266,7 +266,11 @@ start_redir() {
 	 if [ "$(uci_get_by_type global pdnsd_enable)" != "1" ] ;then
 	  # set ssrdns_disable to 1 when using chinadns or unbound
 	  if [ "$(uci_get_by_type global ssrdns_disable)" != "1" ] ;then
-	   service_start /usr/bin/ssr-tunnel -c $CONFIG_FILE -b 0.0.0.0 -u -l 5353 -L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) -f /var/run/ssr-dns.pid
+	   service_start /usr/bin/ssr-tunnel -c $CONFIG_FILE -u \
+                -l $(uci_get_by_type global tunnel_port 5353) \
+                -b $(uci_get_by_type global tunnel_address 0.0.0.0) \
+                -L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) \
+                -f /var/run/ssr-dns.pid
 	   dns_enable_flag=1
 	  fi
 	 else
@@ -360,13 +364,19 @@ start_server() {
 }
 
 start_tunnel() {
+        case "$(uci_get_by_type global tunnel_enable)" in
+                1|on|true|yes|enabled)
 	/usr/bin/ssr-tunnel \
 		-c $CONFIG_FILE $ARG_OTA ${ARG_UDP:="-u"} \
 		-l $(uci_get_by_type global tunnel_port 5300) \
+		-b $(uci_get_by_type global tunnel_address 0.0.0.0) \
 		-L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) \
 		-f /var/run/ssr-tunnel.pid
 	tunnel_enable=1	
 	return $?
+                        ;;
+        esac
+	return 1
 }
 
 start_local() {
@@ -377,7 +387,6 @@ start_local() {
 	/usr/bin/ssr-local -c $CONFIG_SOCK5_FILE -u  \
 		-l $(uci_get_by_type socks5_proxy local_port 1080) \
 		-b $(uci_get_by_type socks5_proxy local_address 0.0.0.0) \
-		-L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) \
 		-f /var/run/ssr-local.pid
 	local_enable=1	
 }
@@ -422,6 +431,7 @@ EOF
 	fi
 	start_server	
 	start_local
+	start_tunnel
 	if [ $(uci_get_by_type global monitor_enable) = 1 ] ;then
 	let total_count=server_count+redir_tcp+redir_udp+tunnel_enable+kcp_enable_flag+local_enable+dns_enable_flag+switch_enable
 	if [ $total_count -gt 0 ]
