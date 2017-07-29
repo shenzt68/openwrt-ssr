@@ -24,10 +24,11 @@ m = Map(shadowsocksr, translate("ShadowSocksR Client"))
 
 local server_table = {}
 local encrypt_methods = {
+	"none",
 	"table",
 	"rc4",
-	"rc4-md5",
 	"rc4-md5-6",
+	"rc4-md5",
 	"aes-128-cfb",
 	"aes-192-cfb",
 	"aes-256-cfb",
@@ -63,7 +64,6 @@ obfs = {
 	"http_post",
 	"random_head",	
 	"tls1.2_ticket_auth",
-	"tls1.2_ticket_fastauth",
 }
 
 

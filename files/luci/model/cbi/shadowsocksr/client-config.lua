@@ -21,10 +21,11 @@ end
 
 local server_table = {}
 local encrypt_methods = {
+	"none",
 	"table",
 	"rc4",
-	"rc4-md5",
 	"rc4-md5-6",
+	"rc4-md5",
 	"aes-128-cfb",
 	"aes-192-cfb",
 	"aes-256-cfb",
@@ -59,9 +60,7 @@ obfs = {
 	"http_simple",
 	"http_post",
 	"random_head",
-	"tls_simple",	
 	"tls1.2_ticket_auth",
-	"tls1.2_ticket_fastauth",
 }
 
 m = Map(shadowsocksr, translate("Edit ShadowSocksR Server"))
@@ -114,6 +113,7 @@ o = s:option(ListValue, "protocol", translate("Protocol"))
 for _, v in ipairs(protocol) do o:value(v) end
 o.rmempty = false
 
+o = s:option(Value, "protocol_param", translate("Protocol param(optional)"))
 
 o = s:option(ListValue, "obfs", translate("Obfs"))
 for _, v in ipairs(obfs) do o:value(v) end
