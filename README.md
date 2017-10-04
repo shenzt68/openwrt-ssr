@@ -26,6 +26,8 @@ ShadowsocksR-libev for OpenWrt
 
 客户端兼容运行SS或SSR的服务器，使用SS服务器时，传输协议需设置为origin，混淆插件需设置为plain
 
+支持 ssr:// url格式导入和导出服务器配置信息
+
 运行模式介绍
 ---
 【IP路由模式】

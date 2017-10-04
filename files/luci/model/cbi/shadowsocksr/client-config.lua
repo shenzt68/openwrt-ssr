@@ -153,4 +153,9 @@ o = s:option(Value, "kcp_param", translate("KcpTun Param"))
 o.default = "--nocomp"
 
 
+o = s:option(DummyValue,"ssr_url","SSR URL") 
+o.rawhtml  = true
+o.template = "shadowsocksr/ssrurl"
+o.value =sid
+
 return m
