@@ -27,7 +27,7 @@ gfw_enable=0
 dns_enable_flag=0
 switch_enable=0
 switch_server=$1
-
+MAXFD=32768
 
 uci_get_by_name() {
 	local ret=$(uci get $NAME.$1.$2 2>/dev/null)
