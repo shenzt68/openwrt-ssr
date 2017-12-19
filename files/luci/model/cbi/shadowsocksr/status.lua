@@ -68,7 +68,7 @@ if luci.sys.call("pidof ssr-redir >/dev/null") == 0 then
 redir_run=1
 end	
 
-if luci.sys.call("pidof ssr-local >/dev/null") == 0 then
+if luci.sys.call("ps -w | grep ssr-local |grep -v grep >/dev/null") == 0 then
 sock5_run=1
 end	
 
@@ -80,7 +80,7 @@ if luci.sys.call("pidof ssr-server >/dev/null") == 0 then
 server_run=1
 end	
 
-if luci.sys.call("pidof ssr-tunnel >/dev/null") == 0 then
+if luci.sys.call("ps -w | grep ssr-tunnel |grep -v grep >/dev/null") == 0 then
 tunnel_run=1
 end	
 
