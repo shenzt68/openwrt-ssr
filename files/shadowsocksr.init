@@ -431,7 +431,9 @@ EOF
 	fi
 	start_server	
 	start_local
-	start_tunnel
+	if ! pidof ssr-tunnel >/dev/null; then
+		start_tunnel
+	fi
 	if [ $(uci_get_by_type global monitor_enable) = 1 ] ;then
 	let total_count=server_count+redir_tcp+redir_udp+tunnel_enable+kcp_enable_flag+local_enable+dns_enable_flag+switch_enable
 	if [ $total_count -gt 0 ]
