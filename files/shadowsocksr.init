@@ -227,13 +227,15 @@ start_redir() {
 		
 		local kcp_str=`/usr/bin/ssr-kcptun -v |grep kcptun|wc -l`
 		[ "0" = $kcp_str ] && return 1
-    local kcp_port=$(uci_get_by_name $GLOBAL_SERVER kcp_port)
-    local server_port=$(uci_get_by_name $GLOBAL_SERVER server_port)
-    local password=$(uci_get_by_name $GLOBAL_SERVER kcp_password)
-    local kcp_param=$(uci_get_by_name $GLOBAL_SERVER kcp_param)
-    [ "$password" != "" ] && password="--key "${password}
-    service_start /usr/bin/ssr-kcptun -r $kcp_server:$kcp_port -l :$server_port  $password $kcp_param 
-    kcp_enable_flag=1
+		local kcp_port=$(uci_get_by_name $GLOBAL_SERVER kcp_port)
+		local server_port=$(uci_get_by_name $GLOBAL_SERVER server_port)
+		local password=$(uci_get_by_name $GLOBAL_SERVER kcp_password)
+		local kcp_param=$(uci_get_by_name $GLOBAL_SERVER kcp_param)
+		[ "$password" != "" ] && password="--key "${password}
+		service_start /usr/bin/ssr-kcptun \
+			-r $kcp_server:$kcp_port \
+			-l :$server_port $password $kcp_param 
+		kcp_enable_flag=1
 	fi
 	
 	gen_config_file $GLOBAL_SERVER 0
@@ -257,40 +259,40 @@ start_redir() {
 		redir_udp=1
 	fi
 	
-		/usr/bin/ssr-redir \
+	/usr/bin/ssr-redir \
 		-c $last_config_file $ARG_OTA $ARG_UDP \
 		-f $pid_file
 		
 	#deal with dns
 	if  [ -n "$gfw_enable" ] ;then
-	 if [ "$(uci_get_by_type global pdnsd_enable)" != "1" ] ;then
-	  # set pdnsd_enable to 2 when using chinadns or unbound
-	  if [ "$(uci_get_by_type global pdnsd_enable)" != "2" ] ;then
-	   service_start /usr/bin/ssr-tunnel -c $last_config_file $ARG_UDP \
-                -l $(uci_get_by_type global tunnel_port 5353) \
-                -b $(uci_get_by_type global tunnel_address 0.0.0.0) \
-                -L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) \
-                -f /var/run/ssr-dns.pid
-	   dns_enable_flag=1
-	  fi
-	 else
-	  local dnsstr="$(uci_get_by_type global tunnel_forward 8.8.4.4:53)"
-	  local dnsserver=`echo "$dnsstr"|awk -F ':'  '{print $1}'`
-	  local dnsport=`echo "$dnsstr"|awk -F ':'  '{print $2}'`
-	  ipset add gfwlist $dnsserver 2>/dev/null
-	  start_pdnsd $dnsserver $dnsport
-	 fi
+		if [ "$(uci_get_by_type global pdnsd_enable)" = "0" ] ;then
+			service_start /usr/bin/ssr-tunnel \
+					-c $last_config_file $ARG_UDP \
+					-l $(uci_get_by_type global tunnel_port 5353) \
+					-b $(uci_get_by_type global tunnel_address 0.0.0.0) \
+					-L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) \
+					-f /var/run/ssr-dns.pid
+			dns_enable_flag=1
+		fi
+
+		if [ "$(uci_get_by_type global pdnsd_enable)" = "1" ] ;then
+			local dnsstr="$(uci_get_by_type global tunnel_forward 8.8.4.4:53)"
+			local dnsserver=`echo "$dnsstr"|awk -F ':'  '{print $1}'`
+			local dnsport=`echo "$dnsstr"|awk -F ':'  '{print $2}'`
+			ipset add gfwlist $dnsserver 2>/dev/null
+			start_pdnsd $dnsserver $dnsport
+		fi
 	fi
 	
 	if [ "$(uci_get_by_type global enable_switch)" = "1" ] ;then
-	if [ "$(uci_get_by_name $GLOBAL_SERVER switch_enable)" = "1" ] ;then
-	if [ -z "$switch_server" ] ;then
-	local switch_time=$(uci_get_by_type global switch_time)
-	local switch_timeout=$(uci_get_by_type global switch_timeout)
-	service_start /usr/bin/ssr-switch start $switch_time $switch_timeout
-	switch_enable=1
-	fi
-	fi
+		if [ "$(uci_get_by_name $GLOBAL_SERVER switch_enable)" = "1" ] ;then
+			if [ -z "$switch_server" ] ;then
+				local switch_time=$(uci_get_by_type global switch_time)
+				local switch_timeout=$(uci_get_by_type global switch_timeout)
+				service_start /usr/bin/ssr-switch start $switch_time $switch_timeout
+				switch_enable=1
+			fi
+		fi
 	fi
 	
 	return $?
@@ -364,8 +366,6 @@ start_server() {
 }
 
 start_tunnel() {
-        case "$(uci_get_by_type global tunnel_enable)" in
-                1|on|true|yes|enabled)
 	local tunnel_config_file=$CONFIG_FILE
 	if [ "$ARG_UDP" = "-U" ]; then
 		tunnel_config_file=$CONFIG_UDP_FILE
@@ -378,9 +378,6 @@ start_tunnel() {
 		-f /var/run/ssr-tunnel.pid
 	tunnel_enable=1	
 	return $?
-                        ;;
-        esac
-	return 1
 }
 
 start_local() {
@@ -435,15 +432,13 @@ EOF
 	fi
 	start_server	
 	start_local
-	if ! pidof ssr-tunnel >/dev/null; then
-		start_tunnel
-	fi
 	if [ $(uci_get_by_type global monitor_enable) = 1 ] ;then
 	let total_count=server_count+redir_tcp+redir_udp+tunnel_enable+kcp_enable_flag+local_enable+dns_enable_flag+switch_enable
-	if [ $total_count -gt 0 ]
-	then
+	if [ $total_count -gt 0 ] ;then
 	#param:server(count) redir_tcp(0:no,1:yes)  redir_udp tunnel kcp local gfw
-	service_start /usr/bin/ssr-monitor $server_count $redir_tcp $redir_udp $tunnel_enable $kcp_enable_flag $local_enable $dns_enable_flag $switch_enable
+		service_start /usr/bin/ssr-monitor \
+			$server_count $redir_tcp $redir_udp $tunnel_enable \
+			$kcp_enable_flag $local_enable $dns_enable_flag $switch_enable
 	fi
 	fi
 	
