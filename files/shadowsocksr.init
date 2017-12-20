@@ -266,7 +266,7 @@ start_redir() {
 	 if [ "$(uci_get_by_type global pdnsd_enable)" != "1" ] ;then
 	  # set ssrdns_disable to 1 when using chinadns or unbound
 	  if [ "$(uci_get_by_type global ssrdns_disable)" != "1" ] ;then
-	   service_start /usr/bin/ssr-tunnel -c $CONFIG_FILE -u \
+	   service_start /usr/bin/ssr-tunnel -c $last_config_file $ARG_UDP \
                 -l $(uci_get_by_type global tunnel_port 5353) \
                 -b $(uci_get_by_type global tunnel_address 0.0.0.0) \
                 -L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) \
@@ -366,8 +366,12 @@ start_server() {
 start_tunnel() {
         case "$(uci_get_by_type global tunnel_enable)" in
                 1|on|true|yes|enabled)
+	local tunnel_config_file=$CONFIG_FILE
+	if [ "$ARG_UDP" = "-U" ]; then
+		tunnel_config_file=$CONFIG_UDP_FILE
+	fi
 	/usr/bin/ssr-tunnel \
-		-c $CONFIG_FILE $ARG_OTA ${ARG_UDP:="-u"} \
+		-c $tunnel_config_file $ARG_OTA $ARG_UDP \
 		-l $(uci_get_by_type global tunnel_port 5300) \
 		-b $(uci_get_by_type global tunnel_address 0.0.0.0) \
 		-L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) \
