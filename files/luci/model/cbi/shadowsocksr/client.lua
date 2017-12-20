@@ -184,8 +184,6 @@ o.rmempty = false
 
 else
 
-
-
 o = s:option(ListValue, "gfw_enable", translate("Operating mode"))
 o:value("router", translate("IP Route Mode"))
 o:value("gfw", translate("GFW List Mode"))
@@ -193,8 +191,9 @@ o.rmempty = false
 
 if pdnsd_flag==1 then
 o = s:option(ListValue, "pdnsd_enable", translate("Resolve Dns Mode"))
-o:value("0", translate("Use DNS Tunnel"))
+o:value("0", translate("Use SSR DNS Tunnel"))
 o:value("1", translate("Use Pdnsd"))
+o:value("2", translate("Use Other DNS Tunnel(Need to install)"))
 o.rmempty = false
 end
 

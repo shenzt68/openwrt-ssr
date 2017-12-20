@@ -320,11 +320,14 @@ msgstr "DNS服务器地址和端口"
 msgid "Resolve Dns Mode"
 msgstr "DNS解析方式"
 
-msgid "Use DNS Tunnel"
-msgstr "使用DNS隧道"
+msgid "Use SSR DNS Tunnel"
+msgstr "使用SSR-DNS隧道"
 
 msgid "Use Pdnsd"
 msgstr "使用Pdnsd"
+
+msgid "Use Other DNS Tunnel(Need to install)"
+msgstr "使用其他DNS转发(需要自己安装)"
 
 msgid "Import SSR"
 msgstr "导入ssr配置信息"

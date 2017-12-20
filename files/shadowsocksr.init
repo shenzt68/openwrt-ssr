@@ -264,8 +264,8 @@ start_redir() {
 	#deal with dns
 	if  [ -n "$gfw_enable" ] ;then
 	 if [ "$(uci_get_by_type global pdnsd_enable)" != "1" ] ;then
-	  # set ssrdns_disable to 1 when using chinadns or unbound
-	  if [ "$(uci_get_by_type global ssrdns_disable)" != "1" ] ;then
+	  # set pdnsd_enable to 2 when using chinadns or unbound
+	  if [ "$(uci_get_by_type global pdnsd_enable)" != "2" ] ;then
 	   service_start /usr/bin/ssr-tunnel -c $last_config_file $ARG_UDP \
                 -l $(uci_get_by_type global tunnel_port 5353) \
                 -b $(uci_get_by_type global tunnel_address 0.0.0.0) \
