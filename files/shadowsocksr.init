@@ -24,7 +24,7 @@ local_enable=0
 kcp_enable_flag=0
 kcp_flag=0
 gfw_enable=0
-dns_enable_flag=0
+pdnsd_enable_flag=0
 switch_enable=0
 switch_server=$1
 MAXFD=32768
@@ -209,9 +209,6 @@ server {
 EOF
 
 	/usr/sbin/pdnsd -c /var/etc/pdnsd.conf -d
-
-
-
 }
 
 start_redir() {
@@ -272,7 +269,7 @@ start_redir() {
 					-b $(uci_get_by_type global tunnel_address 0.0.0.0) \
 					-L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) \
 					-f /var/run/ssr-dns.pid
-			dns_enable_flag=1
+			tunnel_enable=1
 		fi
 
 		if [ "$(uci_get_by_type global pdnsd_enable)" = "1" ] ;then
@@ -281,6 +278,7 @@ start_redir() {
 			local dnsport=`echo "$dnsstr"|awk -F ':'  '{print $2}'`
 			ipset add gfwlist $dnsserver 2>/dev/null
 			start_pdnsd $dnsserver $dnsport
+			pdnsd_enable_flag=1
 		fi
 	fi
 	
@@ -433,12 +431,12 @@ EOF
 	start_server	
 	start_local
 	if [ $(uci_get_by_type global monitor_enable) = 1 ] ;then
-	let total_count=server_count+redir_tcp+redir_udp+tunnel_enable+kcp_enable_flag+local_enable+dns_enable_flag+switch_enable
+	let total_count=server_count+redir_tcp+redir_udp+tunnel_enable+kcp_enable_flag+local_enable+pdnsd_enable_flag+switch_enable
 	if [ $total_count -gt 0 ] ;then
 	#param:server(count) redir_tcp(0:no,1:yes)  redir_udp tunnel kcp local gfw
 		service_start /usr/bin/ssr-monitor \
 			$server_count $redir_tcp $redir_udp $tunnel_enable \
-			$kcp_enable_flag $local_enable $dns_enable_flag $switch_enable
+			$kcp_enable_flag $local_enable $pdnsd_enable_flag $switch_enable
 	fi
 	fi
 	
