@@ -9,6 +9,8 @@ local sock5_run=0
 local server_run=0
 local kcptun_run=0
 local tunnel_run=0
+local udp2raw_run=0
+local udpspeeder_run=0
 local gfw_count=0
 local ad_count=0
 local ip_count=0
@@ -40,6 +42,34 @@ else
      kcptun_version = translate("Unknown")
  end
         
+end
+
+local udp2raw_version=translate("Unknown")
+local udp2raw_file="/usr/bin/udp2raw"
+if not fs.access(udp2raw_file) then
+	udp2raw_version=translate("Not exist")
+else
+	if not fs.access(udp2raw_file, "rwx", "rx", "rx") then
+		fs.chmod(udp2raw_file, 755)
+	end
+	udp2raw_version=sys.exec(udp2raw_file .. " -h |grep 'git version' |awk -F ':' '{print $2}'|awk '{print $1}'")
+	if not udp2raw_version or udp2raw_version == "" then
+		udp2raw_version = translate("Unknown")
+	end
+end
+
+local udpspeeder_version=translate("Unknown")
+local udpspeeder_file="/usr/bin/udpspeeder"
+if not fs.access(udpspeeder_file) then
+	udpspeeder_version=translate("Not exist")
+else
+	if not fs.access(udpspeeder_file, "rwx", "rx", "rx") then
+		fs.chmod(udpspeeder_file, 755)
+	end
+	udpspeeder_version=sys.exec(udpspeeder_file .. " -h |grep 'git version' |awk -F ':' '{print $2}'|awk '{print $1}'")
+	if not udpspeeder_version or udpspeeder_version == "" then
+		udpspeeder_version = translate("Unknown")
+	end
 end
 
 if gfwmode==1 then 
@@ -84,6 +114,13 @@ if luci.sys.call("ps -w | grep ssr-tunnel |grep -v grep >/dev/null") == 0 then
 tunnel_run=1
 end	
 
+if luci.sys.call("pidof udp2raw >/dev/null") == 0 then
+udp2raw_run=1
+end
+
+if luci.sys.call("pidof udpspeeder >/dev/null") == 0 then
+udpspeeder_run=1
+end
 
 m = SimpleForm("Version", translate("Running Status"))
 m.reset = false
@@ -137,6 +174,22 @@ else
 s.value = translate("Not Running")
 end
 
+s=m:field(DummyValue,"udp2raw_run",translate("udp2raw")) 
+s.rawhtml  = true
+if udp2raw_run == 1 then
+s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
+else
+s.value = translate("Not Running")
+end
+
+s=m:field(DummyValue,"udpspeeder_run",translate("UDPspeeder")) 
+s.rawhtml  = true
+if udpspeeder_run == 1 then
+s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
+else
+s.value = translate("Not Running")
+end
+
 s=m:field(DummyValue,"google",translate("Google Connectivity"))
 s.value = translate("No Check") 
 s.template = "shadowsocksr/check"
@@ -170,14 +223,36 @@ s=m:field(DummyValue,"version",translate("IPK Version"))
 s.rawhtml  = true
 s.value =IPK_Version
 
+s=m:field(DummyValue,"ipk_project",translate("IPK Project")) 
+s.rawhtml  = true
+s.value =bold_on .. [[<a href="]] .. "https://github.com/ywb94/openwrt-ssr" .. [[" >]]
+	.. "https://github.com/ywb94/openwrt-ssr" .. [[</a>]] .. bold_off
+
 s=m:field(DummyValue,"kcp_version",translate("KcpTun Version")) 
 s.rawhtml  = true
 s.value =kcptun_version
 
-
-s=m:field(DummyValue,"project",translate("Project")) 
+s=m:field(DummyValue,"kcptun_project",translate("Kcp Tun Project")) 
 s.rawhtml  = true
-s.value =bold_on .. [[<a href="]] .. "https://github.com/ywb94/openwrt-ssr" .. [[" >]]
-	.. "https://github.com/ywb94/openwrt-ssr" .. [[</a>]] .. bold_off
+s.value =bold_on .. [[<a href="]] .. "https://github.com/xtaci/kcptun" .. [[" >]]
+	.. "https://github.com/xtaci/kcptun" .. [[</a>]] .. bold_off
+
+s=m:field(DummyValue,"udp2raw_version",translate("udp2raw Version")) 
+s.rawhtml  = true
+s.value =udp2raw_version
+
+s=m:field(DummyValue,"udp2raw_project",translate("udp2raw tunnel Project")) 
+s.rawhtml  = true
+s.value =bold_on .. [[<a href="]] .. "https://github.com/wangyu-/udp2raw-tunnel" .. [[" >]]
+	.. "https://github.com/wangyu-/udp2raw-tunnel" .. [[</a>]] .. bold_off
+
+s=m:field(DummyValue,"udpspeeder_version",translate("UDPspeeder Version")) 
+s.rawhtml  = true
+s.value =udpspeeder_version
+
+s=m:field(DummyValue,"udpspeeder_project",translate("UDPspeeder Project")) 
+s.rawhtml  = true
+s.value =bold_on .. [[<a href="]] .. "https://github.com/wangyu-/UDPspeeder" .. [[" >]]
+	.. "https://github.com/wangyu-/UDPspeeder" .. [[</a>]] .. bold_off
 	
 return m
