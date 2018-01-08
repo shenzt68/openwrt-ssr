@@ -214,7 +214,7 @@ msgstr "运行中"
 msgid "Enable GFW mode"
 msgstr "启用 GFW 模式"
 
-msgid "Operating mode"
+msgid "Running Mode"
 msgstr "运行模式"
 
 msgid "IP Route Mode"

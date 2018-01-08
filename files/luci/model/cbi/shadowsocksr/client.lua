@@ -212,7 +212,7 @@ o.rmempty = false
 
 else
 
-o = s:option(ListValue, "gfw_enable", translate("Operating mode"))
+o = s:option(ListValue, "run_mode", translate("Running Mode"))
 o:value("router", translate("IP Route Mode"))
 o:value("gfw", translate("GFW List Mode"))
 o.rmempty = false
