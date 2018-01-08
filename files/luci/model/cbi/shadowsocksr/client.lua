@@ -8,18 +8,6 @@ local ipkg = require("luci.model.ipkg")
 
 local sys = require "luci.sys"
 
-local gfwmode=0
-
-local pdnsd_flag=0
-
-if nixio.fs.access("/etc/dnsmasq.ssr/gfw_list.conf") then
-gfwmode=1		
-end
-
-if nixio.fs.access("/etc/pdnsd.conf") then
-pdnsd_flag=1		
-end
-
 m = Map(shadowsocksr, translate("ShadowSocksR Client"))
 
 local server_table = {}
@@ -131,7 +119,6 @@ function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
 end
 
-
 o = sec:option(DummyValue, "server", translate("Server Address"))
 function o.cfgvalue(...)
 	return Value.cfgvalue(...) or "?"
@@ -151,7 +138,6 @@ o = sec:option(DummyValue, "protocol", translate("Protocol"))
 function o.cfgvalue(...)
 	return Value.cfgvalue(...) or "?"
 end
-
 
 o = sec:option(DummyValue, "obfs", translate("Obfs"))
 function o.cfgvalue(...)
@@ -199,32 +185,32 @@ o.datatype = "uinteger"
 o:depends("enable_switch", "1")
 o.default = 3
 
-if gfwmode==0 then 
+if nixio.fs.access("/usr/bin/ssr-gfw") then
+o = s:option(ListValue, "run_mode", translate("Running Mode"))
+o:value("router", translate("IP Route Mode"))
+o:value("gfw", translate("GFW List Mode"))
+
+o = s:option(ListValue, "pdnsd_enable", translate("Resolve Dns Mode"))
+o:depends("run_mode", "gfw")
+o:value("0", translate("Use SSR DNS Tunnel"))
+o:value("1", translate("Use Pdnsd(Need to install)"))
+o:value("2", translate("Use Other DNS Tunnel(Need to install)"))
 
 o = s:option(Flag, "tunnel_enable", translate("Enable Tunnel(DNS)"))
+o:depends("run_mode", "router")
 o.default = 0
-o.rmempty = false
+
+o = s:option(Value, "tunnel_port", translate("Tunnel Port"))
+o:depends("run_mode", "router")
+o.datatype = "port"
+o.default = 5300
+else
+o = s:option(Flag, "tunnel_enable", translate("Enable Tunnel(DNS)"))
+o.default = 0
 
 o = s:option(Value, "tunnel_port", translate("Tunnel Port"))
 o.datatype = "port"
 o.default = 5300
-o.rmempty = false
-
-else
-
-o = s:option(ListValue, "run_mode", translate("Running Mode"))
-o:value("router", translate("IP Route Mode"))
-o:value("gfw", translate("GFW List Mode"))
-o.rmempty = false
-
-if pdnsd_flag==1 then
-o = s:option(ListValue, "pdnsd_enable", translate("Resolve Dns Mode"))
-o:value("0", translate("Use SSR DNS Tunnel"))
-o:value("1", translate("Use Pdnsd"))
-o:value("2", translate("Use Other DNS Tunnel(Need to install)"))
-o.rmempty = false
-end
-
 end
 
 o = s:option(Value, "tunnel_forward", translate("DNS Server IP and Port"))
