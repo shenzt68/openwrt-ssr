@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 # Copyright (C) 2017 XiaoShan https://www.mivm.cn
 
 urlsafe_b64decode() {
