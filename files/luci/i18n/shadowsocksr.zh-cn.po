@@ -352,3 +352,12 @@ msgstr "无法复制SSR网址到剪贴板。"
 
 msgid "Copy SSR to clipboard successfully."
 msgstr "成功复制SSR网址到剪贴板。"
+
+msgid "Servers Manage"
+msgstr "服务器管理"
+
+msgid "Auto Update"
+msgstr "自动更新"
+
+msgid "Through proxy update"
+msgstr "通过代理更新"
