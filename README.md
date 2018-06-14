@@ -253,7 +253,7 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
 
 状态页面：
 
-![luci000](http://iytc.net/img/ssr120.jpg)
+![luci000](https://github.com/MrTheUniverse/openwrt-ssr/blob/master/Img/status.png)
 
   [1]: https://github.com/breakwa11/shadowsocks-libev
   [2]: https://github.com/shadowsocks/luci-app-shadowsocks/wiki/Encrypt-method
