@@ -250,9 +250,6 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
 
 ![luci000](http://iytc.net/img/ssr9.jpg)
 
-服务端：
-
-![luci000](http://iytc.net/img/ssr82.jpg)
 
 状态页面：
 
