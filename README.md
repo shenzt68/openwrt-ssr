@@ -248,7 +248,7 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
 ---
 客户端：
 
-![luci000](http://iytc.net/img/ssr9.jpg)
+![luci000](https://github.com/MrTheUniverse/openwrt-ssr/blob/master/Img/client.png)
 
 
 状态页面：
