@@ -210,6 +210,8 @@ define Package/luci-app-shadowsocksR-GFW/install
 	$(INSTALL_BIN) ./files/shadowsocksr.switch $(1)/usr/bin/ssr-switch
 	$(INSTALL_DIR) $(1)/etc/dnsmasq.ssr
 	$(INSTALL_DATA) ./files/gfw_list.conf $(1)/etc/dnsmasq.ssr/gfw_list.conf
+	$(INSTALL_DATA) ./files/custom_forward.conf $(1)/etc/dnsmasq.ssr/custom_forward.conf
+	$(INSTALL_DATA) ./files/ad.conf $(1)/etc/dnsmasq.ssr/ad.conf
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_DATA) ./files/china_ssr.txt $(1)/etc/china_ssr.txt	
 	$(INSTALL_DIR) $(1)/usr/share/shadowsocksr

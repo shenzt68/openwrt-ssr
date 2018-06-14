@@ -1,7 +1,6 @@
 ShadowsocksR-libev for OpenWrt
 ===
 
-
 简介
 ---
 
@@ -58,8 +57,7 @@ ShadowsocksR-libev for OpenWrt
 
 缺点：GFW列表并不能100%涵盖被墙站点，而且有些国外站点直连速度远不如走代理
 
-注意：如果要使用SSR for OpenWRT的服务端接收手机的接入（通过3G/4G网络），请使用IP路由模式，原因是手机通过无线网络接入OpenWRT服务端，手机上如果要访问google，它使用的是手机上的DNS解析，域名解析是被污染的，指向的是一个随机IP，此IP不能和GFW列表匹配，因此如果使用GFW模式，将不能科学上网
-
+注意：如果要使用SSR for OpenWRT的服务端接收手机的接入（通过3G/4G网络），请使用IP路由模式，原因是手机通过无线网络接入OpenWRT服务端，手机上如果要访问google，它使用的是手机上的DNS解析，域名解析是被污染的，指向的是一个随机IP，此IP不能和GFW列表匹配，因此如果使用GFW模式，将不能科学上网。
 
 如果在IP路由模式下代理正常，在GFW列表模式下无法正常访问，请检查DNS解析是否正确（服务器是否开启UDP转发、是否有其他dns软件冲突等）
 
@@ -234,22 +232,17 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
 
    GFW版本缺省使用DNS隧道（UDP）方式解析域名，要求SS/SSR服务器支持UDP转发。如果服务器不支持UDP转发或UDP方式的解析存在问题，可以使用Pdnsd，以TCP方式来进行DNS域名解析。用户需自行安装pdnsd，安装后会在客户端界面出现“DNS解析方式”选择项，可以选择“使用pdnsd方式”来解析，pdnsd缺省用TCP模式解析，用户可以设置DNS服务器地址和端口，设置的DNS服务器需支持TCP方式查询
 
-   官方新版本中已经取消了pdnsd的下载，如要下载，请在14.07版本中查找，如ar71xx的下载地址为：
-   http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/oldpackages/pdnsd_1.2.9a-par-a8e46ccba7b0fa2230d6c42ab6dcd92926f6c21d_ar71xx.ipk
-
    官方openssl的ipk在编译时去除了camellia和idea加密算法，如果使用官方的libopenssl，将无法使用这两种加密方式，如需使用，请重新编译openssl进行替换
-
 
 问题和建议反馈
 ---
 请点击本页面上的“Issues”反馈使用问题或建议
 
-截图  
+截图
 ---
 客户端：
 
 ![luci000](https://github.com/MrTheUniverse/openwrt-ssr/blob/master/Img/client.png)
-
 
 状态页面：
 
