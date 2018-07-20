@@ -16,6 +16,7 @@ EXTRA_COMMANDS=rules
 CONFIG_FILE=/var/etc/${NAME}.json
 CONFIG_UDP_FILE=/var/etc/${NAME}_u.json
 CONFIG_SOCK5_FILE=/var/etc/${NAME}_s.json
+dnsforwarder_pid=/var/run/dnsforwarder/dns.pid
 server_count=0
 redir_tcp=0
 redir_udp=0
@@ -158,14 +159,14 @@ start_rules() {
 
 start_pdnsd() {
 	local usr_dns="$1"
-  local usr_port="$2"
-  
-	local tcp_dns_list="208.67.222.222, 208.67.220.220"
-	[ -z "$usr_dns" ] && usr_dns="8.8.8.8"
-	[ -z "$usr_port" ] && usr_port="53"
+	local usr_port="$2"
+
+	local tcp_dns_list="208.67.220.220,208.67.222.222"
+	[ -z "$usr_dns" ] && usr_dns="208.67.220.220"
+	[ -z "$usr_port" ] && usr_port="443"
 	mkdir -p /var/etc /var/pdnsd
 	
-  if ! test -f "/var/pdnsd/pdnsd.cache"; then
+	if ! test -f "/var/pdnsd/pdnsd.cache"; then
 	dd if=/dev/zero of="/var/pdnsd/pdnsd.cache" bs=1 count=4 2> /dev/null
 	chown -R nobody.nogroup /var/pdnsd
 	fi
@@ -210,6 +211,62 @@ EOF
 	/usr/sbin/pdnsd -c /var/etc/pdnsd.conf -d
 }
 
+# $1: upstream DNS server
+start_dnsforwarder()
+{
+	echo reday to start dnsforwarder by ssr
+	local usr_dns="$1"
+	local usr_port="$2"
+	
+	uci set dnsforwarder.@arguments[0].enabled=1
+	
+	uci commit dnsforwarder
+
+	local tcp_dns_list="1.0.0.1,1.1.1.1,4.2.2.1,4.2.2.2,8.8.4.4,8.8.8.8,9.9.9.9,208.67.222.222,208.67.220.220,1.0.0.1:443,1.1.1.1:443,1.0.0.1:853,1.1.1.1:853,208.67.222.222:443,208.67.220.220:443,208.67.222.222:5353,208.67.220.220:5353,2001:4860:4860::8844,2001:4860:4860::8888,2606:4700:4700::1111,2606:4700:4700::1001"
+	[ -z "$usr_dns" ] && usr_dns="208.67.220.220"
+	[ -z "$usr_port" ] && usr_port="443"
+	
+	
+		[ ! -f "/etc/dnsforwarder/dnsforwarder.conf.bak" ] && {
+		cp /etc/dnsforwarder/dnsforwarder.conf /etc/dnsforwarder/dnsforwarder.conf.bak
+	}
+	cat > /etc/dnsforwarder/dnsforwarder.conf <<EOF
+LogOn true
+LogFileThresholdLength 102400
+LogFileFolder /var/log
+UDPLocal 0.0.0.0:5353
+TCPGroup $usr_dns:$usr_port,$tcp_dns_list * no
+GroupFile
+BlockIP 243.185.187.39,46.82.174.68,37.61.54.158,93.46.8.89,59.24.3.173,203.98.7.65,8.7.198.45,78.16.49.15,159.106.121.75,69.63.187.12,31.13.76.8,31.13.64.49
+IPSubstituting
+BlockNegativeResponse false
+Hosts
+HostsUpdateInterval 18000
+HostsDownloadPath
+HostsScript
+HostsRetryInterval 30
+AppendHosts
+BlockIpv6WhenIpv4Exists false
+UseCache true
+CacheSize 1048576
+MemoryCache true
+CacheFile
+IgnoreTTL false
+OverrideTTL -1
+MultipleTTL 1
+ReloadCache false
+OverwriteCache false
+DisabledType
+DisabledDomain
+DisabledList
+DomainStatistic false
+DomainStatisticTempletFile
+StatisticUpdateInterval 29
+EOF
+
+/etc/init.d/dnsforwarder restart
+}
+
 start_tunnel() {
 	local tunnel_config_file=$CONFIG_FILE
 	if [ "$ARG_UDP" = "-U" ]; then
@@ -225,7 +282,7 @@ start_tunnel() {
 		-c $tunnel_config_file $ARG_OTA -u \
 		-l $local_dns_port \
 		-b $(uci_get_by_type global tunnel_address 0.0.0.0) \
-		-L $(uci_get_by_type global tunnel_forward 8.8.4.4:53) \
+		-L $(uci_get_by_type global tunnel_forward 208.67.220.220:443) \
 		-f /var/run/ssr-tunnel.pid
 	tunnel_enable=1
 	return $?
@@ -287,12 +344,20 @@ start_redir() {
 		fi
 
 		if [ "$(uci_get_by_type global pdnsd_enable)" = "1" ] ;then
-			local dnsstr="$(uci_get_by_type global tunnel_forward 8.8.4.4:53)"
+			local dnsstr="$(uci_get_by_type global tunnel_forward 208.67.220.220:443)"
 			local dnsserver=`echo "$dnsstr"|awk -F ':'  '{print $1}'`
 			local dnsport=`echo "$dnsstr"|awk -F ':'  '{print $2}'`
 			ipset add gfwlist $dnsserver 2>/dev/null
 			start_pdnsd $dnsserver $dnsport
 			pdnsd_enable_flag=1
+		fi
+		
+		if [ "$(uci_get_by_type global pdnsd_enable)" = "2" ] ;then
+			local dnsstr="$(uci_get_by_type global tunnel_forward 208.67.220.220:443)"
+			local dnsserver=`echo "$dnsstr"|awk -F ':'  '{print $1}'`
+			local dnsport=`echo "$dnsstr"|awk -F ':'  '{print $2}'`
+			ipset add gfwlist $dnsserver 2>/dev/null
+			start_dnsforwarder $dnsserver $dnsport
 		fi
 	fi
 	
@@ -361,29 +426,29 @@ EOF
 }
 
 start_service() {
-[ $(uci_get_by_name $1 enable) = "0"  ]  && return 1
-let server_count=server_count+1
-if [ $server_count = 1 ] ;then
-iptables -N SSR-SERVER-RULE && \
-iptables -t filter -I INPUT  -j SSR-SERVER-RULE
-fi
+	[ $(uci_get_by_name $1 enable) = "0"  ]  && return 1
+	let server_count=server_count+1
+	if [ $server_count = 1 ] ;then
+	iptables -N SSR-SERVER-RULE && \
+	iptables -t filter -I INPUT  -j SSR-SERVER-RULE
+	fi
 
-gen_service_file $1 /var/etc/${NAME}_${server_count}.json
-/usr/bin/ssr-server -c /var/etc/${NAME}_${server_count}.json -u -f /var/run/ssr-server${server_count}.pid 
-iptables -t filter -A SSR-SERVER-RULE -p tcp --dport $(uci_get_by_name $1 server_port) -j ACCEPT
-iptables -t filter -A SSR-SERVER-RULE -p udp --dport $(uci_get_by_name $1 server_port) -j ACCEPT
-return 0
+	gen_service_file $1 /var/etc/${NAME}_${server_count}.json
+	/usr/bin/ssr-server -c /var/etc/${NAME}_${server_count}.json -u -f /var/run/ssr-server${server_count}.pid 
+	iptables -t filter -A SSR-SERVER-RULE -p tcp --dport $(uci_get_by_name $1 server_port) -j ACCEPT
+	iptables -t filter -A SSR-SERVER-RULE -p udp --dport $(uci_get_by_name $1 server_port) -j ACCEPT
+	return 0
 }
 gen_serv_include() {
-FWI=$(uci get firewall.shadowsocksr.path 2>/dev/null) 
-[ -n "$FWI" ] || return 0
-if [ ! -f $FWI ] ;then
-echo '#!/bin/sh' >$FWI
-fi
-extract_rules() {
-echo "*filter"
-iptables-save -t filter | grep SSR-SERVER-RULE|sed -e "s/^-A INPUT/-I INPUT/" 
-echo 'COMMIT'
+	FWI=$(uci get firewall.shadowsocksr.path 2>/dev/null) 
+	[ -n "$FWI" ] || return 0
+	if [ ! -f $FWI ] ;then
+	echo '#!/bin/sh' >$FWI
+	fi
+	extract_rules() {
+	echo "*filter"
+	iptables-save -t filter | grep SSR-SERVER-RULE|sed -e "s/^-A INPUT/-I INPUT/" 
+	echo 'COMMIT'
 }
 	cat <<-EOF >>$FWI
 	iptables-save -c | grep -v "SSR-SERVER" | iptables-restore -c
@@ -394,8 +459,8 @@ EOF
 
 }
 start_server() {
-  SERVER_ENABLE=$(uci_get_by_type server_global enable_server)
-  [ "$SERVER_ENABLE" = 0 ] && return 0
+	SERVER_ENABLE=$(uci_get_by_type server_global enable_server)
+	[ "$SERVER_ENABLE" = 0 ] && return 0
 	mkdir -p /var/run /var/etc
 
 	config_load $NAME
@@ -455,6 +520,12 @@ start() {
 			start_tunnel
 			;;
 	esac
+	else
+		mkdir -p /tmp/dnsmasq.d
+		cat > /tmp/dnsmasq.d/dnsmasq-ssr.conf <<EOF
+conf-dir=/etc/dnsmasq.ssr
+EOF
+		/etc/init.d/dnsmasq restart
 	fi
 	
 	fi
@@ -499,5 +570,18 @@ stop() {
 	killall -q -9 ssr-server
 	killall -q -9 ssr-kcptun
 	killall -q -9 ssr-local
-	killall -q pdnsd
+	killall -q -9 dnsforwarder
+	killall -q pdnsd	
+	if [ -f "/tmp/dnsmasq.d/dnsmasq-ssr.conf" ]; then
+		rm -f /tmp/dnsmasq.d/dnsmasq-ssr.conf
+		/etc/init.d/dnsmasq restart
+	fi
+	
+	uci set dnsforwarder.@arguments[0].enabled=0
+	
+	uci commit dnsforwarder
+
+	[ -f  "/etc/dnsforwarder/dnsforwarder.conf.bak" ] && cp /etc/dnsforwarder/dnsforwarder.conf.bak /etc/dnsforwarder/dnsforwarder.conf
+	rm -f /etc/dnsforwarder/dnsforwarder.conf.bak
+	/etc/init.d/dnsforwarder restart
 }
