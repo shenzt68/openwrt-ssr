@@ -32,15 +32,15 @@ local sys = require "luci.sys"
 local kcptun_version=translate("Unknown")
 local kcp_file="/usr/bin/ssr-kcptun"
 if not fs.access(kcp_file)  then
- kcptun_version=translate("Not exist")
+	kcptun_version=translate("Not exist")
 else
- if not fs.access(kcp_file, "rwx", "rx", "rx") then
-   fs.chmod(kcp_file, 755)
- end
- kcptun_version=sys.exec(kcp_file .. " -v | awk '{printf $3}'")
- if not kcptun_version or kcptun_version == "" then
-     kcptun_version = translate("Unknown")
- end
+	if not fs.access(kcp_file, "rwx", "rx", "rx") then
+		fs.chmod(kcp_file, 755)
+	end
+	kcptun_version=sys.exec(kcp_file .. " -v | awk '{printf $3}'")
+	if not kcptun_version or kcptun_version == "" then
+		kcptun_version = translate("Unknown")
+	end
         
 end
 
@@ -73,14 +73,14 @@ else
 end
 
 if gfwmode==1 then 
- gfw_count = tonumber(sys.exec("cat /etc/dnsmasq.ssr/gfw_list.conf | wc -l"))/2
- if nixio.fs.access("/etc/dnsmasq.ssr/ad.conf") then
-  ad_count=tonumber(sys.exec("cat /etc/dnsmasq.ssr/ad.conf | wc -l"))
- end
+	gfw_count = tonumber(sys.exec("cat /etc/dnsmasq.ssr/gfw_list.conf | wc -l"))/2
+	if nixio.fs.access("/etc/dnsmasq.ssr/ad.conf") then
+	ad_count=tonumber(sys.exec("cat /etc/dnsmasq.ssr/ad.conf | wc -l"))
+	end
 end
  
 if nixio.fs.access("/etc/china_ssr.txt") then 
- ip_count = sys.exec("cat /etc/china_ssr.txt | wc -l")
+	ip_count = sys.exec("cat /etc/china_ssr.txt | wc -l")
 end
 
 local icount=sys.exec("ps -w | grep ssr-reudp |grep -v grep| wc -l")

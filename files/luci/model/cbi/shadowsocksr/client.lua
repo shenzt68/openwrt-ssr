@@ -22,7 +22,10 @@ local encrypt_methods = {
 	"aes-256-cfb",
 	"aes-128-ctr",
 	"aes-192-ctr",
-	"aes-256-ctr",	
+	"aes-256-ctr",
+	"aes-128-gcm",
+	"aes-192-gcm",
+	"aes-256-gcm",
 	"bf-cfb",
 	"camellia-128-cfb",
 	"camellia-192-cfb",
@@ -35,6 +38,8 @@ local encrypt_methods = {
 	"salsa20",
 	"chacha20",
 	"chacha20-ietf",
+	"chacha20-ietf-poly1305",
+	"xchacha20-ietf-poly1305",
 }
 
 local protocol = {
@@ -57,6 +62,7 @@ obfs = {
 	"http_post",
 	"random_head",	
 	"tls1.2_ticket_auth",
+	"tls1.2_ticket_fastauth",
 }
 
 local raw_mode = {
@@ -193,8 +199,8 @@ o:value("gfw", translate("GFW List Mode"))
 o = s:option(ListValue, "pdnsd_enable", translate("Resolve Dns Mode"))
 o:depends("run_mode", "gfw")
 o:value("0", translate("Use SSR DNS Tunnel"))
-o:value("1", translate("Use Pdnsd(Need to install)"))
-o:value("2", translate("Use Other DNS Tunnel(Need to install)"))
+o:value("1", translate("Use Pdnsd"))
+o:value("2", translate("Use dnsforwarder"))
 
 o = s:option(Flag, "tunnel_enable", translate("Enable Tunnel(DNS)"))
 o:depends("run_mode", "router")
@@ -214,7 +220,7 @@ o.default = 5300
 end
 
 o = s:option(Value, "tunnel_forward", translate("DNS Server IP and Port"))
-o.default = "8.8.4.4:53"
+o.default = "208.67.220.220:443"
 o.rmempty = false
 
 -- [[ SOCKS5 Proxy ]]--
