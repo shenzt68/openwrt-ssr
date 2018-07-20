@@ -9,7 +9,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openwrt-ssr
-PKG_VERSION:=3.0.9
+PKG_VERSION:=3.10.02
 # PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
@@ -48,7 +48,7 @@ endef
 Package/luci-app-shadowsocksR = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib)
 Package/luci-app-shadowsocksR-Client = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib)
 Package/luci-app-shadowsocksR-Server = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib)
-Package/luci-app-shadowsocksR-GFW = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib +dnsmasq-full +coreutils +coreutils-base64)
+Package/luci-app-shadowsocksR-GFW = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib +dnsmasq-full +pdnsd-alt +coreutils +coreutils-base64 +curl +bash +bind-dig)
 
 define Package/openwrt-ssr/description
 	LuCI Support for $(1).
@@ -224,8 +224,9 @@ define Package/luci-app-shadowsocksR-GFW/install
 	$(INSTALL_BIN) ./files/shadowsocksr.switch $(1)/usr/bin/ssr-switch
 	$(INSTALL_DIR) $(1)/etc/dnsmasq.ssr
 	$(INSTALL_DATA) ./files/gfw_list.conf $(1)/etc/dnsmasq.ssr/gfw_list.conf
-	$(INSTALL_DATA) ./files/custom_forward.conf $(1)/etc/dnsmasq.ssr/custom_forward.conf
+	$(INSTALL_DATA) ./files/custom_list.conf $(1)/etc/dnsmasq.ssr/custom_list.conf
 	$(INSTALL_DATA) ./files/ad.conf $(1)/etc/dnsmasq.ssr/ad.conf
+	$(INSTALL_DATA) ./files/ad_list.conf $(1)/etc/dnsmasq.ssr/ad_list.conf
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_DATA) ./files/china_ssr.txt $(1)/etc/china_ssr.txt	
 	$(INSTALL_DIR) $(1)/usr/share/shadowsocksr
