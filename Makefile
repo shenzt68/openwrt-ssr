@@ -38,7 +38,7 @@ define Package/openwrt-ssr/Default
 	CATEGORY:=LuCI
 	SUBMENU:=3. Applications
 	TITLE:=shadowsocksR-libev LuCI interface
-	URL:=https://github.com/MrTheUniverse/openwrt-ssr
+	URL:=https://github.com/505575853/openwrt-ssr
 	VARIANT:=$(1)
 	DEPENDS:=$(3)	
 	PKGARCH:=all
@@ -48,7 +48,7 @@ endef
 Package/luci-app-shadowsocksR = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib)
 Package/luci-app-shadowsocksR-Client = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib)
 Package/luci-app-shadowsocksR-Server = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib)
-Package/luci-app-shadowsocksR-GFW = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib +dnsmasq-full +pdnsd-alt +coreutils +coreutils-base64 +curl +bash +bind-dig)
+Package/luci-app-shadowsocksR-GFW = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib +dnsmasq-full +pdnsd-alt +dnsforwarder +coreutils +coreutils-base64 +curl +bash +bind-dig)
 
 define Package/openwrt-ssr/description
 	LuCI Support for $(1).
