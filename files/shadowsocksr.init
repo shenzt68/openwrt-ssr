@@ -25,6 +25,7 @@ local_enable=0
 kcp_enable_flag=0
 kcp_flag=0
 pdnsd_enable_flag=0
+dnsforwarder_enable_flag=0
 switch_enable=0
 switch_server=$1
 MAXFD=32768
@@ -360,6 +361,7 @@ start_redir() {
 			local dnsport=`echo "$dnsstr"|awk -F ':'  '{print $2}'`
 			ipset add gfwlist $dnsserver 2>/dev/null
 			start_dnsforwarder $dnsserver $dnsport
+			dnsforwarder_enable_flag=1
 		fi
 	fi
 	
