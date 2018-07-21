@@ -219,6 +219,7 @@ start_dnsforwarder()
 	local usr_port="$2"
 	
 	uci set dnsforwarder.@arguments[0].enabled=1
+	uci set dnsforwarder.@arguments[0].redir=0
 	
 	uci commit dnsforwarder
 
@@ -236,7 +237,7 @@ LogFileThresholdLength 102400
 LogFileFolder /var/log
 UDPLocal 0.0.0.0:5353
 TCPGroup $usr_dns:$usr_port * no
-#TCPGroup $usr_dns:$usr_port,$tcp_dns_list1 * no
+#TCPGroup $usr_dns:$usr_port,$tcp_dns_list * no
 GroupFile
 BlockIP 243.185.187.39,46.82.174.68,37.61.54.158,93.46.8.89,59.24.3.173,203.98.7.65,8.7.198.45,78.16.49.15,159.106.121.75,69.63.187.12,31.13.76.8,31.13.64.49
 IPSubstituting
@@ -579,7 +580,7 @@ stop() {
 	fi
 	
 	uci set dnsforwarder.@arguments[0].enabled=0
-	
+	uci set dnsforwarder.@arguments[0].redir=0
 	uci commit dnsforwarder
 
 	[ -f  "/etc/dnsforwarder/dnsforwarder.conf.bak" ] && cp /etc/dnsforwarder/dnsforwarder.conf.bak /etc/dnsforwarder/dnsforwarder.conf
