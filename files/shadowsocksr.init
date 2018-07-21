@@ -197,15 +197,15 @@ server {
 	interval=10m;
 	purge_cache=off;
 }
-server {
-	label= "ssr-pdnsd";
-	ip = $tcp_dns_list;
-	port = 5353;
-	timeout=6;
-	uptest=none;
-	interval=10m;
-	purge_cache=off;
-}
+#server {
+#	label= "ssr-pdnsd";
+#	ip = $tcp_dns_list;
+#	port = 5353;
+#	timeout=6;
+#	uptest=none;
+#	interval=10m;
+#	purge_cache=off;
+#}
 EOF
 
 	/usr/sbin/pdnsd -c /var/etc/pdnsd.conf -d
@@ -222,7 +222,7 @@ start_dnsforwarder()
 	
 	uci commit dnsforwarder
 
-	local tcp_dns_list="1.0.0.1,1.1.1.1,4.2.2.1,4.2.2.2,8.8.4.4,8.8.8.8,9.9.9.9,208.67.222.222,208.67.220.220,1.0.0.1:443,1.1.1.1:443,1.0.0.1:853,1.1.1.1:853,208.67.222.222:443,208.67.220.220:443,208.67.222.222:5353,208.67.220.220:5353,2001:4860:4860::8844,2001:4860:4860::8888,2606:4700:4700::1111,2606:4700:4700::1001"
+	local tcp_dns_list1="1.0.0.1,1.1.1.1,4.2.2.1,4.2.2.2,8.8.4.4,8.8.8.8,9.9.9.9,208.67.222.222,208.67.220.220,1.0.0.1:443,1.1.1.1:443,1.0.0.1:853,1.1.1.1:853,208.67.222.222:443,208.67.220.220:443,208.67.222.222:5353,208.67.220.220:5353,2001:4860:4860::8844,2001:4860:4860::8888,2606:4700:4700::1111,2606:4700:4700::1001"
 	[ -z "$usr_dns" ] && usr_dns="208.67.220.220"
 	[ -z "$usr_port" ] && usr_port="443"
 	
@@ -235,7 +235,8 @@ LogOn true
 LogFileThresholdLength 102400
 LogFileFolder /var/log
 UDPLocal 0.0.0.0:5353
-TCPGroup $usr_dns:$usr_port,$tcp_dns_list * no
+TCPGroup $usr_dns:$usr_port * no
+#TCPGroup $usr_dns:$usr_port,$tcp_dns_list1 * no
 GroupFile
 BlockIP 243.185.187.39,46.82.174.68,37.61.54.158,93.46.8.89,59.24.3.173,203.98.7.65,8.7.198.45,78.16.49.15,159.106.121.75,69.63.187.12,31.13.76.8,31.13.64.49
 IPSubstituting
