@@ -230,7 +230,7 @@ define Package/luci-app-shadowsocksR-GFW/install
 	$(INSTALL_DIR) $(1)/etc
 	$(INSTALL_DATA) ./files/china_ssr.txt $(1)/etc/china_ssr.txt	
 	$(INSTALL_DIR) $(1)/usr/share/shadowsocksr
-	$(INSTALL_DATA) ./files/root/usr/share/shadowsocksr/*.sh $(1)/usr/share/shadowsocksr/
+	$(INSTALL_BIN) ./files/root/usr/share/shadowsocksr/*.sh $(1)/usr/share/shadowsocksr/
 endef
 
 $(eval $(call BuildPackage,luci-app-shadowsocksR))
