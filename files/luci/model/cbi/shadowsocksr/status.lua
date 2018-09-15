@@ -6,7 +6,7 @@ local m, s, o
 local redir_run=0
 local reudp_run=0
 local sock5_run=0
-local server_run=0
+-- local server_run=0
 local kcptun_run=0
 local tunnel_run=0
 local udp2raw_run=0
@@ -106,9 +106,9 @@ if luci.sys.call("pidof ssr-kcptun >/dev/null") == 0 then
 kcptun_run=1
 end	
 
-if luci.sys.call("pidof ssr-server >/dev/null") == 0 then
-server_run=1
-end	
+-- if luci.sys.call("pidof ssr-server >/dev/null") == 0 then
+-- server_run=1
+-- end	
 
 if luci.sys.call("ps -w | grep ssr-tunnel |grep -v grep >/dev/null") == 0 then
 tunnel_run=1
@@ -134,13 +134,13 @@ else
 s.value = translate("Not Running")
 end
 
-s=m:field(DummyValue,"server_run",translate("Global SSR Server")) 
-s.rawhtml  = true
-if server_run == 1 then
-s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
-else
-s.value = translate("Not Running")
-end
+-- s=m:field(DummyValue,"server_run",translate("Global SSR Server")) 
+-- s.rawhtml  = true
+-- if server_run == 1 then
+-- s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
+-- else
+-- s.value = translate("Not Running")
+-- end
 
 s=m:field(DummyValue,"reudp_run",translate("UDP Relay")) 
 s.rawhtml  = true
