@@ -28,6 +28,7 @@ function index()
 	entry({"admin", "services", "shadowsocksr", "refresh"}, call("refresh_data"))
     entry({"admin", "services", "shadowsocksr", "checkport"}, call("check_port"))
 
+    entry({"admin", "services", "shadowsocksr", "custom"},form("shadowsocksr/custom-list"),_("Custom List"), 40).leaf = true
   
 end
 

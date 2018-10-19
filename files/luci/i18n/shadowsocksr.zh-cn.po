@@ -359,3 +359,9 @@ msgstr "自动更新"
 
 msgid "Through proxy update"
 msgstr "通过代理更新"
+
+msgid "Custom List"
+msgstr "自定义黑名单"
+
+msgid "GFW Custom List"
+msgstr "自定义GFW黑名单"
