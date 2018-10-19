@@ -158,14 +158,15 @@ start_rules() {
 
 start_pdnsd() {
 	local usr_dns="$1"
-  local usr_port="$2"
-  
-	local tcp_dns_list="208.67.222.222, 208.67.220.220"
-	[ -z "$usr_dns" ] && usr_dns="8.8.8.8"
-	[ -z "$usr_port" ] && usr_port="53"
+	local usr_port="$2"
+
+	local tcp_dns_list="208.67.220.220,208.67.222.222,8.8.8.8,8.8.4.4,1.1.1.1,1.0.0.1,9.9.9.9"
+	local tcp_dns_list1="208.67.220.220,208.67.222.222,1.1.1.1,1.0.0.1"
+	[ -z "$usr_dns" ] && usr_dns="208.67.220.220"
+	[ -z "$usr_port" ] && usr_port="443"
 	mkdir -p /var/etc /var/pdnsd
 	
-  if ! test -f "/var/pdnsd/pdnsd.cache"; then
+	if ! test -f "/var/pdnsd/pdnsd.cache"; then
 	dd if=/dev/zero of="/var/pdnsd/pdnsd.cache" bs=1 count=4 2> /dev/null
 	chown -R nobody.nogroup /var/pdnsd
 	fi
@@ -199,7 +200,16 @@ server {
 server {
 	label= "ssr-pdnsd";
 	ip = $tcp_dns_list;
-	port = 5353;
+	port = 53;
+	timeout=6;
+	uptest=none;
+	interval=10m;
+	purge_cache=off;
+}
+server {
+	label= "ssr-pdnsd1";
+	ip = $tcp_dns_list1;
+	port = 443;
 	timeout=6;
 	uptest=none;
 	interval=10m;
