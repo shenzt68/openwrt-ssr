@@ -27,7 +27,7 @@ function index()
 	entry({"admin", "services", "shadowsocksr", "check"}, call("check_status"))
 	entry({"admin", "services", "shadowsocksr", "refresh"}, call("refresh_data"))
     entry({"admin", "services", "shadowsocksr", "checkport"}, call("check_port"))
-
+    entry({"admin", "services", "shadowsocksr", "servers"}, arcombine(cbi("shadowsocksr/servers"), cbi("shadowsocksr/servers-details")),_("Servers Manage"), 20).leaf = true
     entry({"admin", "services", "shadowsocksr", "custom"},form("shadowsocksr/custom-list"),_("Custom List"), 40).leaf = true
   
 end

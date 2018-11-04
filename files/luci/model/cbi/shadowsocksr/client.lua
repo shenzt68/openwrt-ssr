@@ -194,7 +194,7 @@ o = s:option(ListValue, "pdnsd_enable", translate("Resolve Dns Mode"))
 o:depends("run_mode", "gfw")
 o:value("0", translate("Use SSR DNS Tunnel"))
 o:value("1", translate("Use Pdnsd"))
-o:value("2", translate("Use Other DNS Tunnel(Need to install)"))
+o.default = 1
 
 o = s:option(Flag, "tunnel_enable", translate("Enable Tunnel(DNS)"))
 o:depends("run_mode", "router")

@@ -365,3 +365,45 @@ msgstr "自定义黑名单"
 
 msgid "GFW Custom List"
 msgstr "自定义GFW黑名单"
+
+msgid "Servers Manage"
+msgstr "服务器管理"
+
+msgid "Server subscription"
+msgstr "服务器订阅"
+
+msgid "Update time (every day)"
+msgstr "更新时间（每天）"
+
+msgid "Subscribe URL"
+msgstr "订阅地址"
+
+msgid "Update"
+msgstr "立即更新"
+
+msgid "Protocol Param"
+msgstr "协议参数"
+
+msgid "Obfs Param"
+msgstr "混淆参数"
+
+msgid "IPK Project"
+msgstr "IPK 项目地址"
+
+msgid "KcpTun Version"
+msgstr "KcpTun 版本号"
+
+msgid "Kcp Tun Project"
+msgstr "KcpTun 项目地址"
+
+msgid "udp2raw Version"
+msgstr "udp2raw 版本号"
+
+msgid "udp2raw tunnel Project"
+msgstr "udp2raw 项目地址"
+
+msgid "UDPspeeder Version"
+msgstr "UDPspeeder 版本号"
+
+msgid "UDPspeeder Project"
+msgstr "UDPspeeder 项目地址"

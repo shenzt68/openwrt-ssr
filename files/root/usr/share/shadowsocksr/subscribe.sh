@@ -24,7 +24,7 @@ Server_Update() {
     local uci_set="uci -q set $name.$1."
     ${uci_set}alias="[$ssr_group] $ssr_remarks"
     ${uci_set}auth_enable="0"
-    ${uci_set}switch_enable="0"
+    ${uci_set}switch_enable="1"
     ${uci_set}server="$ssr_host"
     ${uci_set}server_port="$ssr_port"
     ${uci_set}local_port="1234"
@@ -48,7 +48,7 @@ subscribe_url=($(uci get $name.@server_subscribe[0].subscribe_url))
 log_name=${name}_subscribe
 for ((o=0;o<${#subscribe_url[@]};o++))
 do
-    subscribe_data=$(curl -s -L --connect-timeout 3 ${subscribe_url[o]})
+    subscribe_data=$(wget-ssl --no-check-certificate -T 3 -O- ${subscribe_url[o]})
     curl_code=$?
     if [ $curl_code -eq 0 ];then
         ssr_url=($(echo $subscribe_data | base64 -d | sed 's/\r//g')) # 解码数据并删除 \r 换行符
@@ -117,19 +117,7 @@ do
                         ;;
                     esac
                 done
-                CheckIPAddr $ssr_host
-                if [ $? -ne 0 ]; then # 如果地址不是IP 则解析IP
-                    ssr_hosts=($(dig $ssr_host a +short))
-                    for ((i=0;i<${#ssr_hosts[@]};i++))
-                    do
-                        ssr_host=${ssr_hosts[i]}
-                        CheckIPAddr $ssr_host
-                        [ $? -eq 0 ] && continue
-                        ssr_host=""
-                    done
-                    [ -z "$ssr_host" ] && continue
-                fi
-                
+               
                 uci_name_tmp=$(uci show $name | grep -w $ssr_host | awk -F . '{print $2}')
                 if [ -z "$uci_name_tmp" ]; then # 判断当前服务器信息是否存在
                     uci_name_tmp=$(uci add $name servers)

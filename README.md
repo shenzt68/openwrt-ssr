@@ -32,7 +32,7 @@ ShadowsocksR-libev for OpenWrt
 可选依赖               | 作用
 -------------------|--------------------
 `dnsmasq-full`     | DNS 域名污染列表解析
-`curl`             | 获取 DNS 域名污染列表和服务器订阅数据
+`wget`             | 获取 DNS 域名污染列表和服务器订阅数据
 `coreutils-base64` | base64 解码 DNS 域名污染列表和服务器订阅数据
 `bash`             | 服务器订阅脚本使用 bash 解释器运行
 `bind-dig`         | 用于订阅脚本解析域名
@@ -111,7 +111,7 @@ ShadowsocksR-libev for OpenWrt
    ```
  - Pandorabox(潘多拉)编译补充
 
-  潘多拉也是Openwrt的另一个定制版本，用16.10版本的SDK编译时无法使用feed获取安装包，需要先将libpcre、zlib、libopenssl等makefile放入SDK的package目录，再make menuconfig
+  潘多拉也是Openwrt的另一个定制版本，用18.10版本的SDK编译时无法使用feed获取安装包，需要先将libpcre、zlib、libopenssl等makefile放入SDK的package目录，再make menuconfig
 
   这三个包的makefile可以从[这里下载][8]
 
@@ -194,21 +194,6 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
    内网主机列表                | 内网IP列表，可以指定多个
 
 
-   服务端配置：
-
-   键名           | 数据类型   | 说明
-   ---------------|------------|-----------------------------------------------
-   enable         | 布尔型     | 是否启用此服务器配置
-   server         | 字符串     | 服务器本机IP地址, 一般为0.0.0.0
-   server_port    | 数值       | 服务器监听端口号, 小于 65535
-   timeout        | 数值       | 超时时间（秒）, 默认 60
-   password       | 字符串     | 服务端设置的密码
-   encrypt_method | 字符串     | 加密方式, [详情参考][2]
-   protocol       | 字符串     | 传输协议，默认"origin"[详情参考][3]
-   obfs           | 字符串     | 混淆插件，默认"plain" [详情参考][3]
-   obfs_param     | 字符串     | 混淆插件参数 [详情参考][3]
-   fast_open      | 布尔型     | TCP快速打开 [详情参考][3]
-
    在某些openwrt上的kcptun启用压缩后存在问题，因此在界面上加上了“--nocomp”参数，缺省为非压缩，请在服务端也使用非压缩模式
 
    如要打开kcptun的日志，可以在kcptun参数栏填入"--nocomp --log /var/log/kcptun.log"，日志会保存在指定文件中
@@ -240,13 +225,21 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
 
 截图
 ---
-客户端：
+客户端页面：
 
 ![luci000](https://github.com/MrTheUniverse/openwrt-ssr/blob/master/Img/client.png)
+
+服务器订阅页面：
+
+![luci000](https://github.com/MrTheUniverse/openwrt-ssr/blob/master/Img/subscription.png)
 
 状态页面：
 
 ![luci000](https://github.com/MrTheUniverse/openwrt-ssr/blob/master/Img/status.png)
+
+自定义黑名单页面：
+
+![luci000](https://github.com/MrTheUniverse/openwrt-ssr/blob/master/Img/custom_list.png)
 
   [1]: https://github.com/breakwa11/shadowsocks-libev
   [2]: https://github.com/shadowsocks/luci-app-shadowsocks/wiki/Encrypt-method
