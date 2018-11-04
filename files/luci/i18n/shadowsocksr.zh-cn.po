@@ -379,7 +379,7 @@ msgid "Subscribe URL"
 msgstr "订阅地址"
 
 msgid "Update"
-msgstr "立即更新"
+msgstr "更新"
 
 msgid "Protocol Param"
 msgstr "协议参数"

@@ -229,10 +229,6 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
 
 ![luci000](https://github.com/MrTheUniverse/openwrt-ssr/blob/master/Img/client.png)
 
-服务器订阅页面：
-
-![luci000](https://github.com/MrTheUniverse/openwrt-ssr/blob/master/Img/subscription.png)
-
 状态页面：
 
 ![luci000](https://github.com/MrTheUniverse/openwrt-ssr/blob/master/Img/status.png)

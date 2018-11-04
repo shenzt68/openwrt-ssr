@@ -1,7 +1,6 @@
 -- Copyright (C) 2017 yushi studio <ywb94@qq.com>
 -- Licensed to the public under the GNU General Public License v3.
 
-local IPK_Version="3.1.3"
 local m, s, o
 local redir_run=0
 local reudp_run=0
@@ -134,14 +133,6 @@ else
 	s.value = translate("Not Running")
 end
 
--- s=m:field(DummyValue,"server_run",translate("Global SSR Server")) 
--- s.rawhtml  = true
--- if server_run == 1 then
--- s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
--- else
--- s.value = translate("Not Running")
--- end
-
 s=m:field(DummyValue,"reudp_run",translate("UDP Relay")) 
 s.rawhtml  = true
 if reudp_run == 1 then
@@ -218,15 +209,6 @@ s.value =ip_count .. " " .. translate("Records")
 s=m:field(DummyValue,"check_port",translate("Check Server Port"))
 s.template = "shadowsocksr/checkport"
 s.value =translate("No Check")
-
-s=m:field(DummyValue,"version",translate("IPK Version")) 
-s.rawhtml  = true
-s.value =IPK_Version
-
-s=m:field(DummyValue,"ipk_project",translate("IPK Project")) 
-s.rawhtml  = true
-s.value =bold_on .. [[<a href="]] .. "https://github.com/ywb94/openwrt-ssr" .. [[" >]]
-	.. "https://github.com/ywb94/openwrt-ssr" .. [[</a>]] .. bold_off
 
 s=m:field(DummyValue,"kcp_version",translate("KcpTun Version")) 
 s.rawhtml  = true
