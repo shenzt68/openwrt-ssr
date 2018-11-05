@@ -32,7 +32,7 @@ ShadowsocksR-libev for OpenWrt
 可选依赖               | 作用
 -------------------|--------------------
 `dnsmasq-full`     | DNS 域名污染列表解析
-`wget`             | 获取 DNS 域名污染列表和服务器订阅数据
+`wget`             | 获取服务器订阅数据
 `coreutils-base64` | base64 解码 DNS 域名污染列表和服务器订阅数据
 `bash`             | 服务器订阅脚本使用 bash 解释器运行
 `bind-dig`         | 用于订阅脚本解析域名
@@ -41,17 +41,20 @@ ShadowsocksR-libev for OpenWrt
 
 运行模式介绍
 ---
+
 【IP路由模式】
- - 所有国内IP网段不走代理，国外IP网段走代理；
- - 白名单模式：缺省都走代理，列表中IP网段不走代理
+
+- 所有国内IP网段不走代理，国外IP网段走代理；
+- 白名单模式：缺省都走代理，列表中IP网段不走代理
 
 优点：国内外分流清晰明确；适合线路好SSR服务器，通过代理可提高访问国外网站的速度；
 
 缺点：开启BT下载时，如连接国外的IP，会损耗SSR服务器的流量；如果SSR服务器线路不好，通过代理访问国外网站的速度不如直连
 
 【GFW列表模式】
- - 只有在GFW列表中的网站走代理；其他都不走代理；
- - 黑名单模式：缺省都不走代理，列表中网站走代理
+
+- 只有在GFW列表中的网站走代理；其他都不走代理；
+- 黑名单模式：缺省都不走代理，列表中网站走代理
 
 优点：目标明确，只有访问列表中网站才会损耗SSR服务器流量
 
@@ -64,12 +67,13 @@ ShadowsocksR-libev for OpenWrt
 编译
 ---
 
- - 从 OpenWrt 的 [SDK][S] 编译（编译环境：Ubuntu 64位系统），如果是第一次编译，还需下载OpenWrt所需依赖软件
+- 从 OpenWrt 的 [SDK][S] 编译（编译环境：Ubuntu 64位系统），如果是第一次编译，还需下载OpenWrt所需依赖软件
+
    ```bash
    sudo apt-get install gawk libncurses5-dev libz-dev zlib1g-dev  git ccache
    ```
 
- - 下载路由器对应平台的SDK
+- 下载路由器对应平台的SDK
 
    ```bash
    # 以 ar71xx 平台为例
@@ -94,9 +98,10 @@ ShadowsocksR-libev for OpenWrt
    po2lmo ./package/openwrt-ssr/files/luci/i18n/shadowsocksr.zh-cn.po ./package/openwrt-ssr/files/luci/i18n/shadowsocksr.zh-cn.lmo
 
    # 开始编译
-    make package/openwrt-ssr/compile V=99
+  make package/openwrt-ssr/compile V=99
    ```
- - LEDE编译补充
+
+- LEDE编译补充
 
    LEDE是OpenWRT的另一个版本，LEDE的SDK采用xz压缩，需先用xz -d解压下载的SDK包，再按上述命令操作
 
@@ -109,7 +114,8 @@ ShadowsocksR-libev for OpenWrt
    ./scripts/feeds install zlib
    ./scripts/feeds install libopenssl
    ```
- - Pandorabox(潘多拉)编译补充
+
+- Pandorabox(潘多拉)编译补充
 
   潘多拉也是Openwrt的另一个定制版本，用18.10版本的SDK编译时无法使用feed获取安装包，需要先将libpcre、zlib、libopenssl等makefile放入SDK的package目录，再make menuconfig
 
@@ -117,6 +123,7 @@ ShadowsocksR-libev for OpenWrt
 
 安装
 ---
+
 本软件包依赖库：libopenssl、libpthread、ipset、ip、iptables-mod-tproxy、libpcre，GFW版本还需依赖dnsmasq-full、coreutils-base64，opkg会自动安装上述库文件
 
 软件编译后可生成两个软件包，分别是luci-app-shadowsocksR（原始版本）、luci-app-shadowsocksR-GFW（GFW版本），用户根据需要选择其中一个安装即可
@@ -139,6 +146,7 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
    #安装软件包
    opkg install /tmp/luci-app-shadowsocksR*_all.ipk
    ```
+
 如要启用KcpTun，需从本项目releases页面或相关网站（[网站1][4]、[网站2][7]）下载路由器平台对应的二进制文件，并将文件名改为ssr-kcptun，放入/usr/bin目录
 
 安装后强烈建议重启路由器，因为luci有缓存机制，在升级或新装IPK后，如不重启有时会出现一些莫名其妙的问题；另GFW版本会安装、修改、调用dnsmasq-full，安装后最好能重启路由器
@@ -155,9 +163,9 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
    auth_enable    | 布尔型     | 一次验证开关[0.关闭 1.开启],需要服务端同时支持
    switch_enable  | 布尔型     | 此服务器是否可以自动切换
    server         | 主机类型   | 服务器地址, 可以是 IP 或者域名，推荐使用IP地址
-   server_port    | 数值       | 服务器端口号, 小于 65535   
+   server_port    | 数值       | 服务器端口号, 小于 65535
    local_port     | 数值       | 本地绑定的端口号, 小于 65535
-   timeout        | 数值       | 超时时间（秒）, 默认 60   
+   timeout        | 数值       | 超时时间（秒）, 默认 60
    password       | 字符串     | 服务端设置的密码
    encrypt_method | 字符串     | 加密方式, [详情参考][2]
    protocol       | 字符串     | 传输协议，默认"origin"[详情参考][3]
@@ -193,7 +201,6 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
    内网访问控制                | 可以控制内网中哪些IP能走代理，哪些不能走代理，可以指定下面列表内或列表外IP
    内网主机列表                | 内网IP列表，可以指定多个
 
-
    在某些openwrt上的kcptun启用压缩后存在问题，因此在界面上加上了“--nocomp”参数，缺省为非压缩，请在服务端也使用非压缩模式
 
    如要打开kcptun的日志，可以在kcptun参数栏填入"--nocomp --log /var/log/kcptun.log"，日志会保存在指定文件中
@@ -203,10 +210,12 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
    GFW列表模式的数据文件为/etc/dnsmasq.ssr/gfw_list.conf，包含所有被墙网站，如需更新，请在“状态”页面更新
 
    如果要自定义GFW规则，在目录/etc/dnsmasq.ssr下创建一个文件，名称任取，比如myrules.conf，在文件中按要求输入你需要添加的网址，比如要添加google.com.hk，需输入如下两行：
-   ```
+
+   ```conf
    server=/.google.com.hk/127.0.0.1#5353
    ipset=/.google.com.hk/gfwlist
    ```
+
    添加后执行/etc/init.d/dnsmasq restart重启dnsmasq
 
    广告过滤为GFW版本特有，数据文件为/etc/dnsmasq.ssr/ad.conf，其原理是将广告网站的IP地址解析为127.0.0.1，使用的数据库为easylistchina+easylist；广告过滤模块缺省未安装，用户在“状态”页面更新广告数据库后自动打开，如打开广告过滤后出现问题，请删除此文件并重启dnsmasq
@@ -221,10 +230,12 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
 
 问题和建议反馈
 ---
+
 请点击本页面上的“Issues”反馈使用问题或建议
 
 截图
 ---
+
 客户端页面：
 
 ![luci000](https://github.com/MrTheUniverse/openwrt-ssr/blob/master/Img/client.png)
