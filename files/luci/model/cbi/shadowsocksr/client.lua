@@ -10,8 +10,6 @@ local sys = require "luci.sys"
 
 m = Map(shadowsocksr, translate("ShadowSocksR Client"))
 
-m:section(SimpleSection).template  = "shadowsocksr/status"
-
 local server_table = {}
 uci:foreach(shadowsocksr, "servers", function(s)
 	if s.alias then
