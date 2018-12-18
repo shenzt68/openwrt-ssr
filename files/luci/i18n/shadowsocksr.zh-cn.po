@@ -115,6 +115,9 @@ msgstr "内网主机列表"
 msgid "SSR Client"
 msgstr "客户端"
 
+msgid "SSR Servers"
+msgstr "SSR 服务器"
+
 msgid "SSR Server"
 msgstr "服务端"
 
@@ -407,3 +410,6 @@ msgstr "UDPspeeder 版本号"
 
 msgid "UDPspeeder Project"
 msgstr "UDPspeeder 项目地址"
+
+msgid "Servers subscription and manage"
+msgstr "服务器订阅与管理"

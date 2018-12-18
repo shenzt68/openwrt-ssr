@@ -141,13 +141,23 @@ else
 	s.value = translate("Not Running")
 end
 
-s=m:field(DummyValue,"sock5_run",translate("SOCKS5 Proxy")) 
-s.rawhtml  = true
-if sock5_run == 1 then
-	s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
-else
-	s.value = translate("Not Running")
+if nixio.fs.access("/usr/bin/ssr-local") then
+	s=m:field(DummyValue,"sock5_run",translate("SOCKS5 Proxy")) 
+	s.rawhtml  = true
+	if sock5_run == 1 then
+		s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
+	else
+		s.value = translate("Not Running")
+	end
 end
+
+s=m:field(DummyValue,"pdnsd_run",translate("PDNSD"))
+s.rawhtml  = true                                              
+if pdnsd_run == 1 then                             
+s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
+else             
+s.value = translate("Not Running")
+end 
 
 s=m:field(DummyValue,"tunnel_run",translate("DNS Tunnel")) 
 s.rawhtml  = true
@@ -157,28 +167,34 @@ else
 	s.value = translate("Not Running")
 end
 
-s=m:field(DummyValue,"kcptun_run",translate("KcpTun")) 
-s.rawhtml  = true
-if kcptun_run == 1 then
-	s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
-else
-	s.value = translate("Not Running")
+if nixio.fs.access("/usr/bin/ssr-kcptun") then
+	s=m:field(DummyValue,"kcptun_run",translate("KcpTun")) 
+	s.rawhtml  = true
+	if kcptun_run == 1 then
+		s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
+	else
+		s.value = translate("Not Running")
+	end
 end
 
-s=m:field(DummyValue,"udp2raw_run",translate("udp2raw")) 
-s.rawhtml  = true
-if udp2raw_run == 1 then
-	s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
-else
-	s.value = translate("Not Running")
+if nixio.fs.access("/usr/bin/udp2raw") then
+	s=m:field(DummyValue,"udp2raw_run",translate("udp2raw")) 
+	s.rawhtml  = true
+	if udp2raw_run == 1 then
+		s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
+	else
+		s.value = translate("Not Running")
+	end
 end
 
-s=m:field(DummyValue,"udpspeeder_run",translate("UDPspeeder")) 
-s.rawhtml  = true
-if udpspeeder_run == 1 then
-	s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
-else
-	s.value = translate("Not Running")
+if nixio.fs.access("/usr/bin/udpspeeder") then
+	s=m:field(DummyValue,"udpspeeder_run",translate("UDPspeeder")) 
+	s.rawhtml  = true
+	if udpspeeder_run == 1 then
+		s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
+	else
+		s.value = translate("Not Running")
+	end
 end
 
 s=m:field(DummyValue,"google",translate("Google Connectivity"))
@@ -210,31 +226,36 @@ s=m:field(DummyValue,"check_port",translate("Check Server Port"))
 s.template = "shadowsocksr/checkport"
 s.value =translate("No Check")
 
-s=m:field(DummyValue,"kcp_version",translate("KcpTun Version")) 
-s.rawhtml  = true
-s.value =kcptun_version
+if nixio.fs.access("/usr/bin/ssr-kcptun") then
+	s=m:field(DummyValue,"kcp_version",translate("KcpTun Version")) 
+	s.rawhtml  = true
+	s.value =kcptun_version
 
-s=m:field(DummyValue,"kcptun_project",translate("Kcp Tun Project")) 
-s.rawhtml  = true
-s.value =bold_on .. [[<a href="]] .. "https://github.com/xtaci/kcptun" .. [[" >]]
-	.. "https://github.com/xtaci/kcptun" .. [[</a>]] .. bold_off
+	s=m:field(DummyValue,"kcptun_project",translate("Kcp Tun Project")) 
+	s.rawhtml  = true
+	s.value =bold_on .. [[<a href="]] .. "https://github.com/xtaci/kcptun" .. [[" >]]
+		.. "https://github.com/xtaci/kcptun" .. [[</a>]] .. bold_off
+end
 
-s=m:field(DummyValue,"udp2raw_version",translate("udp2raw Version")) 
-s.rawhtml  = true
-s.value =udp2raw_version
+if nixio.fs.access("/usr/bin/udp2raw") then
+	s=m:field(DummyValue,"udp2raw_version",translate("udp2raw Version")) 
+	s.rawhtml  = true
+	s.value =udp2raw_version
 
-s=m:field(DummyValue,"udp2raw_project",translate("udp2raw tunnel Project")) 
-s.rawhtml  = true
-s.value =bold_on .. [[<a href="]] .. "https://github.com/wangyu-/udp2raw-tunnel" .. [[" >]]
-	.. "https://github.com/wangyu-/udp2raw-tunnel" .. [[</a>]] .. bold_off
+	s=m:field(DummyValue,"udp2raw_project",translate("udp2raw tunnel Project")) 
+	s.rawhtml  = true
+	s.value =bold_on .. [[<a href="]] .. "https://github.com/wangyu-/udp2raw-tunnel" .. [[" >]]
+		.. "https://github.com/wangyu-/udp2raw-tunnel" .. [[</a>]] .. bold_off
+end
 
-s=m:field(DummyValue,"udpspeeder_version",translate("UDPspeeder Version")) 
-s.rawhtml  = true
-s.value =udpspeeder_version
+if nixio.fs.access("/usr/bin/udpspeeder") then
+	s=m:field(DummyValue,"udpspeeder_version",translate("UDPspeeder Version")) 
+	s.rawhtml  = true
+	s.value =udpspeeder_version
+	s=m:field(DummyValue,"udpspeeder_project",translate("UDPspeeder Project")) 
+	s.rawhtml  = true
+	s.value =bold_on .. [[<a href="]] .. "https://github.com/wangyu-/UDPspeeder" .. [[" >]]
+		.. "https://github.com/wangyu-/UDPspeeder" .. [[</a>]] .. bold_off
+end	
 
-s=m:field(DummyValue,"udpspeeder_project",translate("UDPspeeder Project")) 
-s.rawhtml  = true
-s.value =bold_on .. [[<a href="]] .. "https://github.com/wangyu-/UDPspeeder" .. [[" >]]
-	.. "https://github.com/wangyu-/UDPspeeder" .. [[</a>]] .. bold_off
-	
 return m

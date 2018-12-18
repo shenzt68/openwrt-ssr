@@ -8,93 +8,11 @@ local ipkg = require("luci.model.ipkg")
 
 local sys = require "luci.sys"
 
-local function has_bin(name)
-	return luci.sys.call("command -v %s >/dev/null" %{name}) == 0
-end
-
 m = Map(shadowsocksr, translate("ShadowSocksR Client"))
 
+m:section(SimpleSection).template  = "shadowsocksr/status"
+
 local server_table = {}
-local encrypt_methods = {
-	"none",
-	"table",
-	"rc4",
-	"rc4-md5-6",
-	"rc4-md5",
-	"aes-128-cfb",
-	"aes-192-cfb",
-	"aes-256-cfb",
-	"aes-128-ctr",
-	"aes-192-ctr",
-	"aes-256-ctr",	
-	"bf-cfb",
-	"camellia-128-cfb",
-	"camellia-192-cfb",
-	"camellia-256-cfb",
-	"cast5-cfb",
-	"des-cfb",
-	"idea-cfb",
-	"rc2-cfb",
-	"seed-cfb",
-	"salsa20",
-	"chacha20",
-	"chacha20-ietf",
-}
-
-local protocol = {
-	"origin",
-	"verify_deflate",		
-	"auth_sha1_v4",
-	"auth_aes128_sha1",
-	"auth_aes128_md5",
-	"auth_chain_a",
-	"auth_chain_b",
-	"auth_chain_c",
-	"auth_chain_d",
-	"auth_chain_e",
-	"auth_chain_f",
-}
-
-obfs = {
-	"plain",
-	"http_simple",
-	"http_post",
-	"random_head",	
-	"tls1.2_ticket_auth",
-}
-
-local raw_mode = {
-	"faketcp",
-	"udp",
-	"icmp",
-}
-
-local seq_mode = {
-	"0",
-	"1",
-	"2",
-	"3",
-	"4",
-}
-
-local cipher_mode = {
-	"none",
-	"xor",
-	"aes128cbc",
-}
-
-local auth_mode = {
-	"none",
-	"simple",
-	"md5",
-	"crc32",
-}
-
-local speeder_mode = {
-	"0",
-	"1",
-}
-
 uci:foreach(shadowsocksr, "servers", function(s)
 	if s.alias then
 		server_table[s[".name"]] = s.alias
@@ -102,89 +20,6 @@ uci:foreach(shadowsocksr, "servers", function(s)
 		server_table[s[".name"]] = "%s:%s" %{s.server, s.server_port}
 	end
 end)
-
--- [[ Servers Setting ]]--
-sec = m:section(TypedSection, "servers", translate("Servers Setting"))
-sec.anonymous = true
-sec.addremove = true
-sec.sortable = true
-sec.template = "cbi/tblsection"
-sec.extedit = luci.dispatcher.build_url("admin/services/shadowsocksr/client/%s")
-function sec.create(...)
-	local sid = TypedSection.create(...)
-	if sid then
-		luci.http.redirect(sec.extedit % sid)
-		return
-	end
-end
-
-o = sec:option(DummyValue, "alias", translate("Alias"))
-function o.cfgvalue(...)
-	return Value.cfgvalue(...) or translate("None")
-end
-
-o = sec:option(DummyValue, "server", translate("Server Address"))
-function o.cfgvalue(...)
-	return Value.cfgvalue(...) or "?"
-end
-
-o = sec:option(DummyValue, "server_port", translate("Server Port"))
-function o.cfgvalue(...)
-	return Value.cfgvalue(...) or "?"
-end
-
-o = sec:option(DummyValue, "encrypt_method", translate("Encrypt Method"))
-function o.cfgvalue(...)
-	return Value.cfgvalue(...) or "?"
-end
-
-o = sec:option(DummyValue, "protocol", translate("Protocol"))
-function o.cfgvalue(...)
-	return Value.cfgvalue(...) or "?"
-end
-
-o = sec:option(DummyValue, "obfs", translate("Obfs"))
-function o.cfgvalue(...)
-	return Value.cfgvalue(...) or "?"
-end
-
-o = sec:option(DummyValue, "kcp_enable", translate("KcpTun"))
-function o.cfgvalue(...)
-	return Value.cfgvalue(...) or "?"
-end
-
-o = sec:option(DummyValue, "switch_enable", translate("Auto Switch"))
-function o.cfgvalue(...)
-	return Value.cfgvalue(...) or "0"
-end
-
--- Server Subscribe
-if nixio.fs.access("/usr/share/shadowsocksr/subscribe.sh") and has_bin("base64") and has_bin("bash") and has_bin("dig") then
-	s = m:section(TypedSection, "server_subscribe", translate("Server subscription"))
-	s.anonymous = true
-
-	o = s:option(Flag, "auto_update", translate("Auto Update"))
-	o.rmempty = false
-
-	o = s:option(Flag, "proxy", translate("Through proxy update"))
-	o.rmempty = false
-
-	o = s:option(ListValue, "auto_update_time", translate("Update time (every day)"))
-	for t = 0,23 do
-	o:value(t, t..":00")
-	end
-	o.default=2
-	o.rmempty = false
-
-	o = s:option(DynamicList, "subscribe_url", translate("Subscribe URL"))
-	o.rmempty = true
-
-	o = s:option(Button,"update",translate("Update"))
-	o.write = function()
-	luci.sys.call("/usr/share/shadowsocksr/subscribe.sh >/dev/null 2>&1")
-	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "client"))
-	end
-end
 
 -- [[ Global Setting ]]--
 s = m:section(TypedSection, "global", translate("Global Setting"))
@@ -250,117 +85,119 @@ o.default = "8.8.4.4:53"
 o.rmempty = false
 
 -- [[ SOCKS5 Proxy ]]--
-s = m:section(TypedSection, "socks5_proxy", translate("SOCKS5 Proxy"))
-s.anonymous = true
+if nixio.fs.access("/usr/bin/ssr-local") then
+	s = m:section(TypedSection, "socks5_proxy", translate("SOCKS5 Proxy"))
+	s.anonymous = true
 
-o = s:option(ListValue, "server", translate("Server"))
-o:value("nil", translate("Disable"))
-for k, v in pairs(server_table) do o:value(k, v) end
-o.default = "nil"
-o.rmempty = false
+	o = s:option(ListValue, "server", translate("Server"))
+	o:value("nil", translate("Disable"))
+	for k, v in pairs(server_table) do o:value(k, v) end
+	o.default = "nil"
+	o.rmempty = false
 
-o = s:option(Value, "local_port", translate("Local Port"))
-o.datatype = "port"
-o.default = 1234
-o.rmempty = false
+	o = s:option(Value, "local_port", translate("Local Port"))
+	o.datatype = "port"
+	o.default = 1234
+	o.rmempty = false
+end
 
 -- [[ udp2raw ]]--
 if nixio.fs.access("/usr/bin/udp2raw") then
 
-s = m:section(TypedSection, "udp2raw", translate("udp2raw tunnel"))
-s.anonymous = true
+	s = m:section(TypedSection, "udp2raw", translate("udp2raw tunnel"))
+	s.anonymous = true
 
-o = s:option(Flag, "udp2raw_enable", translate("Enable udp2raw"))
-o.default = 0
-o.rmempty = false
+	o = s:option(Flag, "udp2raw_enable", translate("Enable udp2raw"))
+	o.default = 0
+	o.rmempty = false
 
-o = s:option(Value, "server", translate("Server Address"))
-o.datatype = "host"
-o.rmempty = false
+	o = s:option(Value, "server", translate("Server Address"))
+	o.datatype = "host"
+	o.rmempty = false
 
-o = s:option(Value, "server_port", translate("Server Port"))
-o.datatype = "port"
-o.rmempty = false
+	o = s:option(Value, "server_port", translate("Server Port"))
+	o.datatype = "port"
+	o.rmempty = false
 
-o = s:option(Value, "local_port", translate("Local Port"))
-o.datatype = "port"
-o.rmempty = false
+	o = s:option(Value, "local_port", translate("Local Port"))
+	o.datatype = "port"
+	o.rmempty = false
 
-o = s:option(Value, "key", translate("Password"))
-o.password = true
-o.rmempty = false
+	o = s:option(Value, "key", translate("Password"))
+	o.password = true
+	o.rmempty = false
 
-o = s:option(ListValue, "raw_mode", translate("Raw Mode"))
-for _, v in ipairs(raw_mode) do o:value(v) end
-o.default = "faketcp"
-o.rmempty = false
+	o = s:option(ListValue, "raw_mode", translate("Raw Mode"))
+	for _, v in ipairs(raw_mode) do o:value(v) end
+	o.default = "faketcp"
+	o.rmempty = false
 
-o = s:option(ListValue, "seq_mode", translate("Seq Mode"))
-for _, v in ipairs(seq_mode) do o:value(v) end
-o.default = "3"
-o.rmempty = false
+	o = s:option(ListValue, "seq_mode", translate("Seq Mode"))
+	for _, v in ipairs(seq_mode) do o:value(v) end
+	o.default = "3"
+	o.rmempty = false
 
-o = s:option(ListValue, "cipher_mode", translate("Cipher Mode"))
-for _, v in ipairs(cipher_mode) do o:value(v) end
-o.default = "xor"
-o.rmempty = false
+	o = s:option(ListValue, "cipher_mode", translate("Cipher Mode"))
+	for _, v in ipairs(cipher_mode) do o:value(v) end
+	o.default = "xor"
+	o.rmempty = false
 
-o = s:option(ListValue, "auth_mode", translate("Auth Mode"))
-for _, v in ipairs(auth_mode) do o:value(v) end
-o.default = "simple"
-o.rmempty = false
+	o = s:option(ListValue, "auth_mode", translate("Auth Mode"))
+	for _, v in ipairs(auth_mode) do o:value(v) end
+	o.default = "simple"
+	o.rmempty = false
 
 end
 
 -- [[ udpspeeder ]]--
 if nixio.fs.access("/usr/bin/udpspeeder") then
 
-s = m:section(TypedSection, "udpspeeder", translate("UDPspeeder"))
-s.anonymous = true
+	s = m:section(TypedSection, "udpspeeder", translate("UDPspeeder"))
+	s.anonymous = true
 
-o = s:option(Flag, "udpspeeder_enable", translate("Enable UDPspeeder"))
-o.default = 0
-o.rmempty = false
+	o = s:option(Flag, "udpspeeder_enable", translate("Enable UDPspeeder"))
+	o.default = 0
+	o.rmempty = false
 
-o = s:option(Value, "server", translate("Server Address"))
-o.datatype = "host"
-o.rmempty = false
+	o = s:option(Value, "server", translate("Server Address"))
+	o.datatype = "host"
+	o.rmempty = false
 
-o = s:option(Value, "server_port", translate("Server Port"))
-o.datatype = "port"
-o.rmempty = false
+	o = s:option(Value, "server_port", translate("Server Port"))
+	o.datatype = "port"
+	o.rmempty = false
 
-o = s:option(Value, "local_port", translate("Local Port"))
-o.datatype = "port"
-o.rmempty = false
+	o = s:option(Value, "local_port", translate("Local Port"))
+	o.datatype = "port"
+	o.rmempty = false
 
-o = s:option(Value, "key", translate("Password"))
-o.password = true
-o.rmempty = false
+	o = s:option(Value, "key", translate("Password"))
+	o.password = true
+	o.rmempty = false
 
-o = s:option(ListValue, "speeder_mode", translate("Speeder Mode"))
-for _, v in ipairs(speeder_mode) do o:value(v) end
-o.default = "0"
-o.rmempty = false
+	o = s:option(ListValue, "speeder_mode", translate("Speeder Mode"))
+	for _, v in ipairs(speeder_mode) do o:value(v) end
+	o.default = "0"
+	o.rmempty = false
 
-o = s:option(Value, "fec", translate("Fec"))
-o.default = "20:10"
-o.rmempty = false
+	o = s:option(Value, "fec", translate("Fec"))
+	o.default = "20:10"
+	o.rmempty = false
 
-o = s:option(Value, "mtu", translate("Mtu"))
-o.datatype = "uinteger"
-o.default = 1250
-o.rmempty = false
+	o = s:option(Value, "mtu", translate("Mtu"))
+	o.datatype = "uinteger"
+	o.default = 1250
+	o.rmempty = false
 
-o = s:option(Value, "queue_len", translate("Queue Len"))
-o.datatype = "uinteger"
-o.default = 200
-o.rmempty = false
+	o = s:option(Value, "queue_len", translate("Queue Len"))
+	o.datatype = "uinteger"
+	o.default = 200
+	o.rmempty = false
 
-o = s:option(Value, "timeout", translate("Fec Timeout"))
-o.datatype = "uinteger"
-o.default = 8
-o.rmempty = false
+	o = s:option(Value, "timeout", translate("Fec Timeout"))
+	o.datatype = "uinteger"
+	o.default = 8
+	o.rmempty = false
 
 end
 
