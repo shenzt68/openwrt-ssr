@@ -21,7 +21,7 @@ end
 
 local shadowsocksr = "shadowsocksr"
 -- html constants
-font_blue = [[<font color="blue">]]
+font_blue = [[<font color="green">]]
 font_off = [[</font>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
@@ -120,6 +120,10 @@ end
 if luci.sys.call("pidof udpspeeder >/dev/null") == 0 then
 	udpspeeder_run=1
 end
+
+if luci.sys.call("pidof pdnsd >/dev/null") == 0 then                 
+	pdnsd_run=1     
+end	
 
 m = SimpleForm("Version", translate("Running Status"))
 m.reset = false

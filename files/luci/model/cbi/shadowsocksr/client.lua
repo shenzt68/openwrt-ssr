@@ -54,6 +54,7 @@ if nixio.fs.access("/usr/bin/ssr-gfw") then
 o = s:option(ListValue, "run_mode", translate("Running Mode"))
 o:value("router", translate("IP Route Mode"))
 o:value("gfw", translate("GFW List Mode"))
+o.default = gfw
 
 o = s:option(ListValue, "pdnsd_enable", translate("Resolve Dns Mode"))
 o:depends("run_mode", "gfw")
