@@ -22,7 +22,7 @@ o.rmempty = false
 
 o = s:option(ListValue, "auto_update_time", translate("Update time (every day)"))
 for t = 0,23 do
-o:value(t, t..":00")
+	o:value(t, t..":00")
 end
 o.default=2
 o.rmempty = false
@@ -32,8 +32,8 @@ o.rmempty = true
 
 o = s:option(Button,"update",translate("Update"))
 o.write = function()
-luci.sys.call("/usr/share/shadowsocksr/subscribe.sh >/dev/null 2>&1")
-luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "client"))
+	luci.sys.call("/usr/share/shadowsocksr/subscribe.sh >/dev/null 2>&1")
+	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "client"))
 end
 
 s = m:section(TypedSection, "servers")
@@ -48,11 +48,6 @@ function s.create(...)
 		luci.http.redirect(s.extedit % sid)
 		return
 	end
-end
-
-o = s:option(DummyValue, "type", translate("Type"))
-function o.cfgvalue(...)
-	return Value.cfgvalue(...) or translate("")
 end
 
 o = s:option(DummyValue, "alias", translate("Alias"))
