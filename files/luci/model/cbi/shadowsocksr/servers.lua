@@ -4,7 +4,7 @@ local shadowsocksr = "shadowsocksr"
 local uci = luci.model.uci.cursor()
 local server_count = 0
 uci:foreach("shadowsocksr", "servers", function(s)
-  server_count = server_count + 1
+	server_count = server_count + 1
 end)
 
 m = Map(shadowsocksr,  translate("SSR Servers Manage"))

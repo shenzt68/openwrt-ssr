@@ -158,9 +158,9 @@ end
 s=m:field(DummyValue,"pdnsd_run",translate("PDNSD"))
 s.rawhtml  = true                                              
 if pdnsd_run == 1 then                             
-s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
+	s.value =font_blue .. bold_on .. translate("Running") .. bold_off .. font_off
 else             
-s.value = translate("Not Running")
+	s.value = translate("Not Running")
 end 
 
 s=m:field(DummyValue,"tunnel_run",translate("DNS Tunnel")) 

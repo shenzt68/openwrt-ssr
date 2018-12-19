@@ -51,30 +51,30 @@ o:depends("enable_switch", "1")
 o.default = 3
 
 if nixio.fs.access("/usr/bin/ssr-gfw") then
-o = s:option(ListValue, "run_mode", translate("Running Mode"))
-o:value("router", translate("IP Route Mode"))
-o:value("gfw", translate("GFW List Mode"))
+	o = s:option(ListValue, "run_mode", translate("Running Mode"))
+	o:value("router", translate("IP Route Mode"))
+	o:value("gfw", translate("GFW List Mode"))
 
-o = s:option(ListValue, "pdnsd_enable", translate("Resolve Dns Mode"))
-o:depends("run_mode", "gfw")
-o:value("0", translate("Use SSR DNS Tunnel"))
-o:value("1", translate("Use Pdnsd"))
+	o = s:option(ListValue, "pdnsd_enable", translate("Resolve Dns Mode"))
+	o:depends("run_mode", "gfw")
+	o:value("0", translate("Use SSR DNS Tunnel"))
+	o:value("1", translate("Use Pdnsd"))
 
-o = s:option(Flag, "tunnel_enable", translate("Enable Tunnel(DNS)"))
-o:depends("run_mode", "router")
-o.default = 0
+	o = s:option(Flag, "tunnel_enable", translate("Enable Tunnel(DNS)"))
+	o:depends("run_mode", "router")
+	o.default = 0
 
-o = s:option(Value, "tunnel_port", translate("Tunnel Port"))
-o:depends("run_mode", "router")
-o.datatype = "port"
-o.default = 5300
+	o = s:option(Value, "tunnel_port", translate("Tunnel Port"))
+	o:depends("run_mode", "router")
+	o.datatype = "port"
+	o.default = 5300
 else
-o = s:option(Flag, "tunnel_enable", translate("Enable Tunnel(DNS)"))
-o.default = 0
+	o = s:option(Flag, "tunnel_enable", translate("Enable Tunnel(DNS)"))
+	o.default = 0
 
-o = s:option(Value, "tunnel_port", translate("Tunnel Port"))
-o.datatype = "port"
-o.default = 5300
+	o = s:option(Value, "tunnel_port", translate("Tunnel Port"))
+	o.datatype = "port"
+	o.default = 5300
 end
 
 o = s:option(Value, "tunnel_forward", translate("DNS Server IP and Port"))
