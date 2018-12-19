@@ -40,6 +40,9 @@ o.rmempty = false
 o = s:option(Flag, "enable_switch", translate("Enable Auto Switch"))
 o.rmempty = false
 
+o = s:option(Flag, "enable_multithreading", translate("Enable Multithreading"))
+o.rmempty = false
+
 o = s:option(Value, "switch_time", translate("Switch check cycly(second)"))
 o.datatype = "uinteger"
 o:depends("enable_switch", "1")

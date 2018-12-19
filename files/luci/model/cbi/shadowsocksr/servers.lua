@@ -33,7 +33,7 @@ o.rmempty = true
 o = s:option(Button,"update",translate("Update"))
 o.write = function()
 	luci.sys.call("/usr/share/shadowsocksr/subscribe.sh >/dev/null 2>&1")
-	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "client"))
+	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "servers"))
 end
 
 s = m:section(TypedSection, "servers", translate("Server Setting"))

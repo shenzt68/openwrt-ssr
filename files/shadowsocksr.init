@@ -266,7 +266,7 @@ start_redir() {
 			-l :$server_port $password $kcp_param 
 		kcp_enable_flag=1
 	fi
-	
+
 	gen_config_file $GLOBAL_SERVER 0
 	sscmd="/usr/bin/ssr-redir"
 	
@@ -274,18 +274,18 @@ start_redir() {
 	local last_config_file=$CONFIG_FILE
 	local pid_file="/var/run/ssr-retcp.pid"
 
-	
+	local multithreading_enable = $(uci_get_by_name global enable_multithreading)
 	if [ "$ARG_UDP" = "-U" ]; then
-
-#	    /usr/bin/ssr-redir \
-#			-c $CONFIG_FILE $ARG_OTA \
-#			-f /var/run/ssr-retcp.pid
-
-		for i in $(seq 1 $threads)  
-		do 
-			$sscmd -c $CONFIG_FILE $ARG_OTA -f /var/run/ssr-retcp_$i.pid >/dev/null 2>&1
-		done
-		
+		if [ "$multithreading_enable" = "0" ]; then
+			/usr/bin/ssr-redir \
+				-c $CONFIG_FILE $ARG_OTA \
+				-f /var/run/ssr-retcp.pid
+		else
+			for i in $(seq 1 $threads)  
+			do 
+				$sscmd -c $CONFIG_FILE $ARG_OTA -f /var/run/ssr-retcp_$i.pid >/dev/null 2>&1
+			done
+		fi
 		case "$(uci_get_by_name $UDP_RELAY_SERVER auth_enable)" in
 			1|on|true|yes|enabled) ARG_OTA="-A";;
 			*) ARG_OTA="";;
@@ -294,15 +294,23 @@ start_redir() {
 		last_config_file=$CONFIG_UDP_FILE
 		pid_file="/var/run/ssr-reudp.pid"
 		redir_udp=1
-		for i in $(seq 1 $threads)  
-		do 
-			$sscmd -c $last_config_file $ARG_OTA $ARG_UDP -f /var/run/ssr-reudp_$i.pid >/dev/null 2>&1
-		done
+		if [ "$multithreading_enable" = "1" ]; then
+			for i in $(seq 1 $threads)  
+			do 
+				$sscmd -c $last_config_file $ARG_OTA $ARG_UDP -f /var/run/ssr-reudp_$i.pid >/dev/null 2>&1
+			done
+		fi
 	else
-		for i in $(seq 1 $threads)  
-		do 
-			$sscmd -c $last_config_file $ARG_OTA $ARG_UDP -f /var/run/ssr-retcp_$i.pid >/dev/null 2>&1
-		done
+		if [ "$multithreading_enable" = "1" ]; then
+			for i in $(seq 1 $threads)  
+			do 
+				$sscmd -c $last_config_file $ARG_OTA $ARG_UDP -f /var/run/ssr-retcp_$i.pid >/dev/null 2>&1
+			done
+		else
+			/usr/bin/ssr-redir \
+			-c $last_config_file $ARG_OTA $ARG_UDP \
+			-f $pid_file
+		fi
 	fi
 
 #	/usr/bin/ssr-redir \
