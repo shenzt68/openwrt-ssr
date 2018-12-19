@@ -7,7 +7,7 @@ uci:foreach("shadowsocksr", "servers", function(s)
   server_count = server_count + 1
 end)
 
-m = Map(shadowsocksr,  translate("Servers subscription and manage"))
+m = Map(shadowsocksr,  translate("SSR Servers Manage"))
 
 -- Server Subscribe
 
@@ -36,7 +36,7 @@ o.write = function()
 	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "client"))
 end
 
-s = m:section(TypedSection, "servers")
+s = m:section(TypedSection, "servers"，translate("Server Setting"))
 s.anonymous = true
 s.addremove = true
 s.sortable = false
