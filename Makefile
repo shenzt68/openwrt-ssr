@@ -60,23 +60,23 @@ Package/luci-app-shadowsocksR-Server/description = $(call Package/openwrt-ssr/de
 Package/luci-app-shadowsocksR-GFW/description = $(call Package/openwrt-ssr/description,shadowsocksr-libev GFW)
 
 define Package/openwrt-ssr/prerm
-	#!/bin/sh
-	# check if we are on real system
-	if [ -z "$${IPKG_INSTROOT}" ]; then
-		echo "Removing rc.d symlink for shadowsocksr"
-		/etc/init.d/shadowsocksr disable
-		/etc/init.d/shadowsocksr stop
-		echo "Removing firewall rule for shadowsocksr"
-		uci -q batch <<-EOF >/dev/null
-			delete firewall.shadowsocksr
-			commit firewall
-	    EOF
-	    if [ "$(1)" = "GFW" ] ;then
-			sed -i '/conf-dir/d' /etc/dnsmasq.conf
-			/etc/init.d/dnsmasq restart 
-	    fi
-	fi
-	exit 0
+#!/bin/sh
+# check if we are on real system
+if [ -z "$${IPKG_INSTROOT}" ]; then
+    echo "Removing rc.d symlink for shadowsocksr"
+     /etc/init.d/shadowsocksr disable
+     /etc/init.d/shadowsocksr stop
+    echo "Removing firewall rule for shadowsocksr"
+	  uci -q batch <<-EOF >/dev/null
+		delete firewall.shadowsocksr
+		commit firewall
+EOF
+if [ "$(1)" = "GFW" ] ;then
+sed -i '/conf-dir/d' /etc/dnsmasq.conf
+/etc/init.d/dnsmasq restart 
+fi
+fi
+exit 0
 endef
 
 Package/luci-app-shadowsocksR/prerm = $(call Package/openwrt-ssr/prerm,shadowsocksr)
