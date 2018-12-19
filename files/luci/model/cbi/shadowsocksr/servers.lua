@@ -36,7 +36,7 @@ o.write = function()
 	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "client"))
 end
 
-s = m:section(TypedSection, "servers"，translate("Server Setting"))
+s = m:section(TypedSection, "servers", translate("Server Setting"))
 s.anonymous = true
 s.addremove = true
 s.sortable = false
