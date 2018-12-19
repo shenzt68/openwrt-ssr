@@ -101,20 +101,6 @@ ShadowsocksR-libev for OpenWrt
   make package/openwrt-ssr/compile V=99
    ```
 
-- LEDE编译补充
-
-   LEDE是OpenWRT的另一个版本，LEDE的SDK采用xz压缩，需先用xz -d解压下载的SDK包，再按上述命令操作
-
-   使用LEDE的SDK编译，可能会提示找不到zlib和openssl文件，请运行如下命令
-
-   ```bash
-   ./scripts/feeds update
-   #如果更新base出现错误，修改SDK目录下的feeds.conf.default文件，将“source.git;HEAD”改为“source.git”
-
-   ./scripts/feeds install zlib
-   ./scripts/feeds install libopenssl
-   ```
-
 - Pandorabox(潘多拉)编译补充
 
   潘多拉也是Openwrt的另一个定制版本，用18.10版本的SDK编译时无法使用feed获取安装包，需要先将libpcre、zlib、libopenssl等makefile放入SDK的package目录，再make menuconfig
@@ -209,22 +195,13 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
 
    GFW列表模式的数据文件为/etc/dnsmasq.ssr/gfw_list.conf，包含所有被墙网站，如需更新，请在“状态”页面更新
 
-   如果要自定义GFW规则，在目录/etc/dnsmasq.ssr下创建一个文件，名称任取，比如myrules.conf，在文件中按要求输入你需要添加的网址，比如要添加google.com.hk，需输入如下两行：
-
-   ```conf
-   server=/.google.com.hk/127.0.0.1#5353
-   ipset=/.google.com.hk/gfwlist
-   ```
-
-   添加后执行/etc/init.d/dnsmasq restart重启dnsmasq
-
    广告过滤为GFW版本特有，数据文件为/etc/dnsmasq.ssr/ad.conf，其原理是将广告网站的IP地址解析为127.0.0.1，使用的数据库为easylistchina+easylist；广告过滤模块缺省未安装，用户在“状态”页面更新广告数据库后自动打开，如打开广告过滤后出现问题，请删除此文件并重启dnsmasq
 
    自动切换说明：在服务器配置中如果某些服务器启用了自动切换开关，这些服务器就组成一个可以自动切换的服务器集合，当这些服务器中的某一个作为全局服务器使用，并打开了全局自动切换开关时，如果全局服务器故障，会自动在集合中寻找可用的服务器进行切换。你可以设置检测周期和超时时间。每次检测时会判断缺省服务器是否恢复正常，如果正常，会自动切换回缺省服务器。注：自动切换功能依赖路由器的检测，因此在“路由器访问控制”中应该设置为“正常代理”
 
    自动切换和进程监控的日志可以在OpenWRT的“系统日志”中查看
 
-   GFW版本缺省使用DNS隧道（UDP）方式解析域名，要求SS/SSR服务器支持UDP转发。如果服务器不支持UDP转发或UDP方式的解析存在问题，可以使用Pdnsd，以TCP方式来进行DNS域名解析。用户需自行安装pdnsd，安装后会在客户端界面出现“DNS解析方式”选择项，可以选择“使用pdnsd方式”来解析，pdnsd缺省用TCP模式解析，用户可以设置DNS服务器地址和端口，设置的DNS服务器需支持TCP方式查询
+   GFW版本缺省使用DNS隧道（UDP）方式解析域名，要求SS/SSR服务器支持UDP转发。如果服务器不支持UDP转发或UDP方式的解析存在问题，可以使用Pdnsd，以TCP方式来进行DNS域名解析。
 
    官方openssl的ipk在编译时去除了camellia和idea加密算法，如果使用官方的libopenssl，将无法使用这两种加密方式，如需使用，请重新编译openssl进行替换
 
@@ -235,6 +212,10 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
 
 截图
 ---
+
+服务端页面：
+
+![luci000](https://github.com/MrTheUniverse/openwrt-ssr/blob/master/Img/servers.png)
 
 客户端页面：
 
