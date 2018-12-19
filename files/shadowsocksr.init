@@ -27,6 +27,7 @@ pdnsd_enable_flag=0
 switch_enable=0
 switch_server=$1
 MAXFD=32768
+threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
 
 uci_get_by_name() {
 	local ret=$(uci get $NAME.$1.$2 2>/dev/null)
@@ -82,6 +83,7 @@ gen_config_file() {
 		    "protocol_param": "$(uci_get_by_name $1 protocol_param)",
 		    "obfs": "$(uci_get_by_name $1 obfs)",
 		    "obfs_param": "$(uci_get_by_name $1 obfs_param)",
+			"reuse_port": true,
 		    "fast_open": $fastopen
 		}
 EOF
@@ -266,10 +268,17 @@ start_redir() {
 	fi
 	
 	gen_config_file $GLOBAL_SERVER 0
+	sscmd="/usr/bin/ssr-redir"
+	ucmd="/usr/bin/ssr-redir"
 	
 	redir_tcp=1
 	local last_config_file=$CONFIG_FILE
 	local pid_file="/var/run/ssr-retcp.pid"
+
+	for i in $(seq 1 $threads)  
+	do 
+	    $sscmd -c $CONFIG_FILE $ARG_OTA -f /var/run/ssr-retcp_$i.pid >/dev/null 2>&1
+	done  
 	
 	if [ "$ARG_UDP" = "-U" ]; then
 		/usr/bin/ssr-redir \
@@ -283,6 +292,10 @@ start_redir() {
 		gen_config_file $UDP_RELAY_SERVER 1
 		last_config_file=$CONFIG_UDP_FILE
 		pid_file="/var/run/ssr-reudp.pid"
+		for i in $(seq 1 $threads)  
+	    do 
+	    	$ucmd -c $last_config_file $ARG_OTA -U -f /var/run/ssr-reudp_$i.pid >/dev/null 2>&1
+	    done
 		redir_udp=1
 	fi
 	
