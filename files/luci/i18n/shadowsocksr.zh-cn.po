@@ -413,3 +413,6 @@ msgstr "UDPspeeder 项目地址"
 
 msgid "SSR Servers Manage"
 msgstr "SSR服务器管理"
+
+msgid "Enable Multithreading"
+msgstr "启用多线程"
