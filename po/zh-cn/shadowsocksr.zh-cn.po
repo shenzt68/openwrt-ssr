@@ -416,3 +416,6 @@ msgstr "SSR服务器管理"
 
 msgid "Enable Multithreading"
 msgstr "启用多线程"
+
+msgid "Auto Update Server subscription, GFW list and CHN route"
+msgstr "自动更新服务器订阅、GFW列表和CHN路由表"

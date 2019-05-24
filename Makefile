@@ -9,7 +9,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openwrt-ssr
-PKG_VERSION:=3.2.1
+PKG_VERSION:=3.2.2
 # PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
@@ -46,8 +46,6 @@ endef
 
 
 Package/luci-app-shadowsocksR = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib)
-Package/luci-app-shadowsocksR-Client = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib)
-Package/luci-app-shadowsocksR-Server = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib)
 Package/luci-app-shadowsocksR-GFW = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib +dnsmasq-full +coreutils +coreutils-base64 +pdnsd-alt +wget +bash +bind-dig)
 
 define Package/openwrt-ssr/description
@@ -55,8 +53,6 @@ define Package/openwrt-ssr/description
 endef
 
 Package/luci-app-shadowsocksR/description = $(call Package/openwrt-ssr/description,shadowsocksr-libev Client and Server)
-Package/luci-app-shadowsocksR-Client/description = $(call Package/openwrt-ssr/description,shadowsocksr-libev Client)
-Package/luci-app-shadowsocksR-Server/description = $(call Package/openwrt-ssr/description,shadowsocksr-libev Server)
 Package/luci-app-shadowsocksR-GFW/description = $(call Package/openwrt-ssr/description,shadowsocksr-libev GFW)
 
 define Package/openwrt-ssr/prerm
@@ -80,18 +76,8 @@ exit 0
 endef
 
 Package/luci-app-shadowsocksR/prerm = $(call Package/openwrt-ssr/prerm,shadowsocksr)
-Package/luci-app-shadowsocksR-Client/prerm = $(call Package/openwrt-ssr/prerm,shadowsocksr)
 Package/luci-app-shadowsocksR-GFW/prerm = $(call Package/openwrt-ssr/prerm,GFW)
 
-define Package/luci-app-shadowsocksR-Server/prerm
-#!/bin/sh
-	if [ -z "$${IPKG_INSTROOT}" ]; then
-		/etc/init.d/shadowsocksr disable
-		/etc/init.d/shadowsocksr stop
-	fi 
-	exit 0
-
-endef
 
 
 define Package/openwrt-ssr/postinst
@@ -110,131 +96,57 @@ fi
 
 if [ -z "$${IPKG_INSTROOT}" ]; then
 	( . /etc/uci-defaults/luci-shadowsocksr ) && rm -f /etc/uci-defaults/luci-shadowsocksr
+	rm -f /tmp/luci-indexcache
 	chmod 755 /etc/init.d/shadowsocksr >/dev/null 2>&1
 	/etc/init.d/shadowsocksr enable >/dev/null 2>&1
-    if [ "$(1)" = "GFW" ] ;then
-	   if [ -f "/etc/dnsmasq.conf" ]; then
-          str=`cat /etc/dnsmasq.conf|grep conf-dir`
-          if [ -z "$str" ]; then
-             echo "conf-dir=/etc/dnsmasq.ssr" >> /etc/dnsmasq.conf
-         else
-             sed -i '/conf-dir/d' /etc/dnsmasq.conf  
-             echo "conf-dir=/etc/dnsmasq.ssr" >> /etc/dnsmasq.conf
-           fi 
-       else
-           echo "conf-dir=/etc/dnsmasq.ssr" > /etc/dnsmasq.conf
-       fi
-	    /etc/init.d/dnsmasq restart 
-	fi
 fi
 exit 0
 endef
 
 
 Package/luci-app-shadowsocksR/postinst = $(call Package/openwrt-ssr/postinst,shadowsocksr)
-Package/luci-app-shadowsocksR-Client/postinst = $(call Package/openwrt-ssr/postinst,shadowsocksr)
 Package/luci-app-shadowsocksR-GFW/postinst = $(call Package/openwrt-ssr/postinst,GFW)
-
-define Package/luci-app-shadowsocksR-Server/postinst
-#!/bin/sh
-
-	if [ -z "$${IPKG_INSTROOT}" ]; then
-		( . /etc/uci-defaults/luci-shadowsocksr ) && rm -f /etc/uci-defaults/luci-shadowsocksr
-		chmod 755 /etc/init.d/shadowsocksr >/dev/null 2>&1
-		/etc/init.d/shadowsocksr enable >/dev/null 2>&1
-	fi
-	exit 0
-
-endef
-
-
 
 CONFIGURE_ARGS += --disable-documentation --disable-ssp
 
-define Install/common
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/controller
-	$(INSTALL_DATA) ./files/luci/controller/shadowsocksr.lua $(1)/usr/lib/lua/luci/controller/shadowsocksr.lua
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
-	$(INSTALL_DATA) ./files/luci/i18n/shadowsocksr.*.lmo $(1)/usr/lib/lua/luci/i18n
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/model/cbi/shadowsocksr
-	$(INSTALL_DATA) ./files/luci/model/cbi/shadowsocksr/*.lua $(1)/usr/lib/lua/luci/model/cbi/shadowsocksr/
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/view/shadowsocksr
-	$(INSTALL_DATA) ./files/luci/view/shadowsocksr/*.htm $(1)/usr/lib/lua/luci/view/shadowsocksr/
-	$(INSTALL_DIR) $(1)/etc/uci-defaults
-	$(INSTALL_BIN) ./files/root/etc/uci-defaults/luci-shadowsocksr $(1)/etc/uci-defaults/luci-shadowsocksr
-
-	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_DATA) ./files/shadowsocksr.config $(1)/etc/config/shadowsocksr
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/shadowsocksr.init $(1)/etc/init.d/shadowsocksr
-endef
 
 define Package/openwrt-ssr/install
-	$(call Install/common,$(1))
+	$(INSTALL_DIR) $(1)/usr/lib/lua/luci
+	cp -pR ./luci/* $(1)/usr/lib/lua/luci
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-redir $(1)/usr/bin/ssr-redir
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-local $(1)/usr/bin/ssr-local	
 	$(LN) /usr/bin/ssr-local $(1)/usr/bin/ssr-tunnel
 	#$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-server $(1)/usr/bin/ssr-server		
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-check $(1)/usr/bin/ssr-check
-	$(INSTALL_BIN) ./files/shadowsocksr.rule $(1)/usr/bin/ssr-rules
-	$(INSTALL_BIN) ./files/shadowsocksr.monitor $(1)/usr/bin/ssr-monitor
-	$(INSTALL_BIN) ./files/shadowsocksr.switch $(1)/usr/bin/ssr-switch
+	$(INSTALL_BIN) ./root/usr/bin/ssr-rules $(1)/usr/bin/ssr-rules
+	$(INSTALL_BIN) ./root/usr/bin/ssr-monitor $(1)/usr/bin/ssr-monitor
+	$(INSTALL_BIN) ./root/usr/bin/ssr-switch $(1)/usr/bin/ssr-switch
 	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DATA) ./files/china_ssr.txt $(1)/etc/china_ssr.txt
+	$(INSTALL_DATA) ./root/etc/china_ssr.txt $(1)/etc/china_ssr.txt
 	$(INSTALL_DIR) $(1)/usr/share/shadowsocksr
-	$(INSTALL_DATA) ./files/root/usr/share/shadowsocksr/*.sh $(1)/usr/share/shadowsocksr/
+	$(INSTALL_DATA) ./root/usr/share/shadowsocksr/*.sh $(1)/usr/share/shadowsocksr/
+	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
+	po2lmo ./po/zh-cn/shadowsocksr.zh-cn.po $(1)/usr/lib/lua/luci/i18n/shadowsocksr.zh-cn.lmo
 endef
 
 Package/luci-app-shadowsocksR/install = $(call Package/openwrt-ssr/install,$(1),shadowsocksr)
 
-define Package/luci-app-shadowsocksR-Client/install
-	$(call Install/common,$(1))
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-redir $(1)/usr/bin/ssr-redir
-	#$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-tunnel $(1)/usr/bin/ssr-tunnel	
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-local $(1)/usr/bin/ssr-local
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-check $(1)/usr/bin/ssr-check
-	$(INSTALL_BIN) ./files/shadowsocksr.rule $(1)/usr/bin/ssr-rules
-	$(INSTALL_BIN) ./files/shadowsocksr.monitor $(1)/usr/bin/ssr-monitor
-	$(INSTALL_BIN) ./files/shadowsocksr.switch $(1)/usr/bin/ssr-switch
-	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DATA) ./files/root/etc/china_ssr.txt $(1)/etc/china_ssr.txt	
-endef
-
-define Package/luci-app-shadowsocksR-Server/install
-	$(call Install/common,$(1))
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-server $(1)/usr/bin/ssr-server		
-	$(INSTALL_BIN) ./files/shadowsocksr.rule $(1)/usr/bin/ssr-rules
-	$(INSTALL_BIN) ./files/shadowsocksr.monitor $(1)/usr/bin/ssr-monitor
-endef
 
 define Package/luci-app-shadowsocksR-GFW/install
-	$(call Install/common,$(1))
+	$(INSTALL_DIR) $(1)/usr/lib/lua/luci
+	cp -pR ./luci/* $(1)/usr/lib/lua/luci
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-redir $(1)/usr/bin/ssr-redir
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-local $(1)/usr/bin/ssr-local	
 	$(LN) /usr/bin/ssr-local $(1)/usr/bin/ssr-tunnel
-	#$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-server $(1)/usr/bin/ssr-server		
+# 	#$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-server $(1)/usr/bin/ssr-server		
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-check $(1)/usr/bin/ssr-check
-	$(INSTALL_BIN) ./files/shadowsocksr.rule $(1)/usr/bin/ssr-rules
-	$(INSTALL_BIN) ./files/shadowsocksr.monitor $(1)/usr/bin/ssr-monitor
-	$(INSTALL_BIN) ./files/shadowsocksr.gfw $(1)/usr/bin/ssr-gfw
-	$(INSTALL_BIN) ./files/shadowsocksr.ad $(1)/usr/bin/ssr-ad
-	$(INSTALL_BIN) ./files/shadowsocksr.switch $(1)/usr/bin/ssr-switch
-	$(INSTALL_DIR) $(1)/etc/dnsmasq.ssr
-	$(INSTALL_DATA) ./files/root/etc/dnsmasq.ssr/gfw_list.conf $(1)/etc/dnsmasq.ssr/gfw_list.conf
-	$(INSTALL_DATA) ./files/root/etc/dnsmasq.ssr/custom_forward.conf $(1)/etc/dnsmasq.ssr/custom_forward.conf
-	$(INSTALL_DATA) ./files/root/etc/dnsmasq.ssr/ad.conf $(1)/etc/dnsmasq.ssr/ad.conf
-	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DATA) ./files/root/etc/china_ssr.txt $(1)/etc/china_ssr.txt
-	$(INSTALL_DATA) ./files/root/etc/gfw.list $(1)/etc/gfw.list	
-	$(INSTALL_DIR) $(1)/usr/share/shadowsocksr
-	$(INSTALL_BIN) ./files/root/usr/share/shadowsocksr/*.sh $(1)/usr/share/shadowsocksr/
+	$(INSTALL_DIR) $(1)/
+	cp -pR ./root/* $(1)/
+	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
+	po2lmo ./po/zh-cn/shadowsocksr.zh-cn.po $(1)/usr/lib/lua/luci/i18n/shadowsocksr.zh-cn.lmo
 endef
 
 $(eval $(call BuildPackage,luci-app-shadowsocksR))
-#$(eval $(call BuildPackage,luci-app-shadowsocksR-Client))
-#$(eval $(call BuildPackage,luci-app-shadowsocksR-Server))
 $(eval $(call BuildPackage,luci-app-shadowsocksR-GFW))

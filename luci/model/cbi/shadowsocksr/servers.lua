@@ -16,6 +16,7 @@ s.anonymous = true
 
 o = s:option(Flag, "auto_update", translate("Auto Update"))
 o.rmempty = false
+o.description = translate("Auto Update Server subscription, GFW list and CHN route")
 
 o = s:option(Flag, "proxy", translate("Through proxy update"))
 o.rmempty = false

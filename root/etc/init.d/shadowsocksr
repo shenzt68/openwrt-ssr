@@ -27,6 +27,7 @@ pdnsd_enable_flag=0
 switch_enable=0
 switch_server=$1
 MAXFD=32768
+CRON_FILE=/etc/crontabs/root
 threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
 
 uci_get_by_name() {
@@ -40,6 +41,23 @@ uci_get_by_type() {
 }
 
 run_mode=$(uci_get_by_type global run_mode)
+
+add_cron()
+{
+	sed -i '/ssrplus.log/d' $CRON_FILE
+	echo '0 1 * * 0 echo "" > /tmp/ssrplus.log' >> $CRON_FILE
+	[ -n "$(grep -w "/usr/share/shadowsocksr/subscribe.sh" $CRON_FILE)" ] && sed -i '/\/usr\/share\/shadowsocksr\/subscribe.sh/d' $CRON_FILE
+	[ $(uci_get_by_type server_subscribe auto_update 0) -eq 1 ] && echo "0 $(uci_get_by_type server_subscribe auto_update_time) * * * /usr/share/shadowsocksr/subscribe.sh" >> $CRON_FILE
+	[ -z "$(grep -w "/usr/share/shadowsocksr/update.sh" $CRON_FILE)" ] && echo "0 5 * * 0 /usr/share/shadowsocksr/update.sh" >> $CRON_FILE
+	crontab $CRON_FILE
+}
+
+del_cron()
+{
+	sed -i '/shadowsocksr/d' $CRON_FILE
+	sed -i '/ssrplus.log/d' $CRON_FILE
+	/etc/init.d/cron restart
+}
 
 gen_config_file() {
     
@@ -354,7 +372,8 @@ start_redir() {
 			fi
 		fi
 	fi
-	
+	add_cron
+
 	return $?
 }
 
@@ -503,9 +522,22 @@ start() {
 			1|on|true|yes|enabled)
 				start_tunnel
 				;;
-		esac
+			esac
 		fi
-	
+		if [ "$run_mode" = "gfw" ] ;then
+	   		if [ -f "/etc/dnsmasq.conf" ]; then
+          		str=`cat /etc/dnsmasq.conf|grep conf-dir`
+          		if [ -z "$str" ]; then
+             		echo "conf-dir=/etc/dnsmasq.ssr" >> /etc/dnsmasq.conf
+         		else
+             		sed -i '/conf-dir/d' /etc/dnsmasq.conf  
+             		echo "conf-dir=/etc/dnsmasq.ssr" >> /etc/dnsmasq.conf
+           		fi 
+       		else
+           		echo "conf-dir=/etc/dnsmasq.ssr" > /etc/dnsmasq.conf
+       		fi
+	    	/etc/init.d/dnsmasq restart
+		fi
 	fi
 	start_server	
 	start_local
@@ -543,10 +575,22 @@ stop() {
 	if [ -z "$switch_server" ] ;then
 		killall -q -9 ssr-switch
 	fi
+
 	killall -q -9 ssr-redir
 	killall -q -9 ssr-tunnel
 	killall -q -9 ssr-server
 	killall -q -9 ssr-kcptun
 	killall -q -9 ssr-local
-	killall -q pdnsd
+
+	if [ -f /var/run/pdnsd.pid ] ;then
+    	kill $(cat /var/run/pdnsd.pid) >/dev/null 2>&1
+    else 
+    	kill -9 $(ps | grep pdnsd | grep -v grep | awk '{print $1}') >/dev/null 2>&1 
+	fi
+	
+	if [ "$run_mode" = "gfw" ] ;then
+		sed -i '/conf-dir/d' /etc/dnsmasq.conf
+		/etc/init.d/dnsmasq restart 
+	fi
+	del_cron
 }
