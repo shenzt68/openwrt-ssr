@@ -90,13 +90,6 @@ ShadowsocksR-libev for OpenWrt
    #V1.1.6以后版本取消发布单独的客户端和服务端，如有需要，请修改makefile或采用V1.1.5版本
    make menuconfig
 
-   #如果没有安装po2lmo，则安装（可选）
-   pushd package/openwrt-ssr/tools/po2lmo
-   make && sudo make install
-   popd
-   #编译语言文件（可选）
-   po2lmo ./package/openwrt-ssr/files/luci/i18n/shadowsocksr.zh-cn.po ./package/openwrt-ssr/files/luci/i18n/shadowsocksr.zh-cn.lmo
-
    # 开始编译
   make package/openwrt-ssr/compile V=99
    ```
