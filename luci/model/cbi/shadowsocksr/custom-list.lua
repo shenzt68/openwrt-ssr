@@ -1,5 +1,5 @@
 local fs = require "nixio.fs"
-local conffile = "/etc/gfw.list"
+local conffile = "/etc/config/gfw.list"
 
 m = SimpleForm("custom", translate("GFW Custom List"))
 
