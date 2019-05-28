@@ -40,8 +40,7 @@ define Package/openwrt-ssr/Default
 	TITLE:=shadowsocksR-libev LuCI interface
 	URL:=https://github.com/MrTheUniverse/openwrt-ssr
 	VARIANT:=$(1)
-	DEPENDS:=$(3)	
-	PKGARCH:=all
+	DEPENDS:=$(3)
 endef
 
 
@@ -52,25 +51,26 @@ define Package/openwrt-ssr/description
 	LuCI Support for $(1).
 endef
 
-Package/luci-app-shadowsocksR/description = $(call Package/openwrt-ssr/description,shadowsocksr-libev Client and Server)
+Package/luci-app-shadowsocksR/description = $(call Package/openwrt-ssr/description,shadowsocksr-libev Client)
 Package/luci-app-shadowsocksR-GFW/description = $(call Package/openwrt-ssr/description,shadowsocksr-libev GFW)
 
 define Package/openwrt-ssr/prerm
 #!/bin/sh
 # check if we are on real system
 if [ -z "$${IPKG_INSTROOT}" ]; then
-    echo "Removing rc.d symlink for shadowsocksr"
-     /etc/init.d/shadowsocksr disable
-     /etc/init.d/shadowsocksr stop
-    echo "Removing firewall rule for shadowsocksr"
-	  uci -q batch <<-EOF >/dev/null
-		delete firewall.shadowsocksr
-		commit firewall
+  echo "Removing rc.d symlink for shadowsocksr"
+  /etc/init.d/shadowsocksr disable
+  /etc/init.d/shadowsocksr stop
+  echo "Removing firewall rule for shadowsocksr"
+	uci -q batch <<-EOF >/dev/null
+	delete firewall.shadowsocksr
+	commit firewall
 EOF
-if [ "$(1)" = "GFW" ] ;then
-sed -i '/conf-dir/d' /etc/dnsmasq.conf
-/etc/init.d/dnsmasq restart 
-fi
+	
+	if [ "$(1)" = "GFW" ] ;then
+		sed -i '/conf-dir/d' /etc/dnsmasq.conf
+		/etc/init.d/dnsmasq restart 
+	fi
 fi
 exit 0
 endef
@@ -139,8 +139,7 @@ define Package/luci-app-shadowsocksR-GFW/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-redir $(1)/usr/bin/ssr-redir
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-local $(1)/usr/bin/ssr-local	
-	$(LN) /usr/bin/ssr-local $(1)/usr/bin/ssr-tunnel
-# 	#$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-server $(1)/usr/bin/ssr-server		
+	$(LN) /usr/bin/ssr-local $(1)/usr/bin/ssr-tunnel	
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-check $(1)/usr/bin/ssr-check
 	$(INSTALL_DIR) $(1)/
 	cp -pR ./root/* $(1)/
