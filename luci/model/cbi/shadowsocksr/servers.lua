@@ -67,12 +67,10 @@ function o.cfgvalue(...)
 end
 
 if nixio.fs.access("/usr/bin/ssr-kcptun") then
-
-o = s:option(DummyValue, "kcp_enable", translate("KcpTun"))
-function o.cfgvalue(...)
-	return Value.cfgvalue(...) or "?"
-end
-
+	o = s:option(DummyValue, "kcp_enable", translate("KcpTun"))
+	function o.cfgvalue(...)
+		return Value.cfgvalue(...) or "?"
+	end
 end
 
 o = s:option(DummyValue, "switch_enable", translate("Auto Switch"))
