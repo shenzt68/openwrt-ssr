@@ -22,7 +22,7 @@ Server_Update() {
     ${uci_set}type="$ssr_type"
     ${uci_set}server="$ssr_host"
     ${uci_set}server_port="$ssr_port"
-    ${uci_set}local_port="1081"
+    ${uci_set}local_port="1234"
     uci -q get $name.@servers[$1].timeout >/dev/null || ${uci_set}timeout="60"
     ${uci_set}password="$ssr_passwd"
     ${uci_set}encrypt_method="$ssr_method"
@@ -41,6 +41,7 @@ Server_Update() {
     ${uci_set}security="$ssr_security"
     ${uci_set}transport="$ssr_transport"
     ${uci_set}tcp_guise="$ssr_tcp_guise"
+	${uci_set}tls="$ssr_tls"
 }
 
 name=shadowsocksr
@@ -147,6 +148,12 @@ do
 				json_get_var ssr_security type
 				json_get_var ssr_transport net
 				json_get_var ssr_remarks ps
+				json_get_var ssr_tls_tmp tls
+				if [ "$ssr_tls_tmp" == "tls" ] ;then
+					ssr_tls="1"
+				else
+					ssr_tls="0"
+				fi
 				ssr_tcp_guise="none"
 			fi
 
