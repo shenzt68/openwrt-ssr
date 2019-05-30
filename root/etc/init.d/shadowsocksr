@@ -28,7 +28,7 @@ switch_enable=0
 switch_server=$1
 MAXFD=32768
 CRON_FILE=/etc/crontabs/root
-threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
+threads=1
 
 uci_get_by_name() {
 	local ret=$(uci get $NAME.$1.$2 2>/dev/null)
@@ -90,7 +90,8 @@ gen_config_file() {
     else
         fastopen="false";
     fi
-	
+	local stype=$(uci_get_by_name $1 type)
+	if [ "$stype" == "ssr" ] ;then
 	cat <<-EOF >$config_file
 		{
 		    
@@ -109,6 +110,10 @@ gen_config_file() {
 		    "fast_open": $fastopen
 		}
 EOF
+	elif [ "$stype" == "v2ray" ] ;then
+		lua /usr/share/shadowsocksr/genv2config.lua $GLOBAL_SERVER tcp $(uci_get_by_name $1 local_port) > /var/etc/v2-ssr-retcp.json
+		sed -i 's/\\//g' /var/etc/v2-ssr-retcp.json
+	fi
 }
 
 get_arg_out() {
@@ -290,59 +295,57 @@ start_redir() {
 	fi
 
 	gen_config_file $GLOBAL_SERVER 0
-	sscmd="/usr/bin/ssr-redir"
-	
+	local stype=$(uci_get_by_name $GLOBAL_SERVER type)
+    if [ "$stype" == "ssr" ] ;then
+    	sscmd="/usr/bin/ssr-redir"
+    elif [ "$stype" == "v2ray" ] ;then
+        sscmd="/usr/bin/v2ray/v2ray"
+    fi
+
+	local utype=$(uci_get_by_name $UDP_RELAY_SERVER type)
+    if [ "$utype" == "ssr" ] ;then
+    	ucmd="/usr/bin/ssr-redir"
+    elif [ "$utype" == "v2ray" ] ;then
+    	ucmd="/usr/bin/v2ray/v2ray"
+    fi
+  
+	if [ "$(uci_get_by_type global threads 0)" = "0" ] ;then
+    	threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
+  	else
+		threads=$(uci_get_by_type global threads)
+  	fi
+
 	redir_tcp=1
-	local last_config_file=$CONFIG_FILE
-	local pid_file="/var/run/ssr-retcp.pid"
-
-	if [ "$(uci_get_by_type global enable_multithreading)" = "0" ] ;then
-		if [ "$ARG_UDP" = "-U" ]; then
-			/usr/bin/ssr-redir \
-				-c $CONFIG_FILE $ARG_OTA \
-				-f /var/run/ssr-retcp.pid
-			
-			case "$(uci_get_by_name $UDP_RELAY_SERVER auth_enable)" in
-				1|on|true|yes|enabled) ARG_OTA="-A";;
-				*) ARG_OTA="";;
-			esac		
-			gen_config_file $UDP_RELAY_SERVER 1
-			last_config_file=$CONFIG_UDP_FILE
-			pid_file="/var/run/ssr-reudp.pid"
-			redir_udp=1
-		fi
-		
-		/usr/bin/ssr-redir \
-			-c $last_config_file $ARG_OTA $ARG_UDP \
-			-f $pid_file
+	if [ "$stype" == "ssr" ] ;then
+    	local last_config_file=$CONFIG_FILE
+    	local pid_file="/var/run/ssr-retcp.pid"
+    	for i in $(seq 1 $threads)  
+    	do 
+      		$sscmd -c $CONFIG_FILE $ARG_OTA -f /var/run/ssr-retcp_$i.pid >/dev/null 2>&1
+    	done
+    	echo "$(date "+%Y-%m-%d %H:%M:%S") Shadowsocks/ShadowsocksR $threads Threads Started!" >> /tmp/ssrplus.log  
+  	elif [ "$stype" == "v2ray" ] ;then
+    	$sscmd -config /var/etc/v2-ssr-retcp.json >/dev/null 2>&1 &
+    	echo "$(date "+%Y-%m-%d %H:%M:%S") $($sscmd -version | head -1) Started!" >> /tmp/ssrplus.log
 	fi
-
-	if [ "$(uci_get_by_type global enable_multithreading)" = "1" ] ;then
-		if [ "$ARG_UDP" = "-U" ]; then
-			for i in $(seq 1 $threads)  
-			do 
-				$sscmd -c $CONFIG_FILE $ARG_OTA -f /var/run/ssr-retcp_$i.pid >/dev/null 2>&1
-			done
-			
-			case "$(uci_get_by_name $UDP_RELAY_SERVER auth_enable)" in
-				1|on|true|yes|enabled) ARG_OTA="-A";;
-				*) ARG_OTA="";;
-			esac		
-			gen_config_file $UDP_RELAY_SERVER 1
-			last_config_file=$CONFIG_UDP_FILE
-			pid_file="/var/run/ssr-reudp.pid"
-			redir_udp=1
-			for i in $(seq 1 $threads)  
-			do 
-				$sscmd -c $last_config_file $ARG_OTA $ARG_UDP -f /var/run/ssr-reudp_$i.pid >/dev/null 2>&1
-			done
-		else
-			for i in $(seq 1 $threads)  
-			do 
-				$sscmd -c $last_config_file $ARG_OTA $ARG_UDP -f /var/run/ssr-retcp_$i.pid >/dev/null 2>&1
-			done
-		fi
-	fi
+	
+	if [ -n "$UDP_RELAY_SERVER" ] ;then
+    	redir_udp=1
+    	if [ "$utype" == "ssr" ] ;then
+      		case "$(uci_get_by_name $UDP_RELAY_SERVER auth_enable)" in
+        	1|on|true|yes|enabled) ARG_OTA="-A";;
+        	*) ARG_OTA="";;
+      	esac		
+      		gen_config_file $UDP_RELAY_SERVER 1
+      		last_config_file=$CONFIG_UDP_FILE
+      		pid_file="/var/run/ssr-reudp.pid"
+      		$ucmd -c $last_config_file $ARG_OTA -U -f /var/run/ssr-reudp.pid >/dev/null 2>&1
+    	elif [ "$utype" == "v2ray" ] ; then
+        	lua /usr/share/shadowsocksr/genv2config.lua $UDP_RELAY_SERVER udp $(uci_get_by_name $UDP_RELAY_SERVER local_port) > /var/etc/v2-ssr-reudp.json
+        	sed -i 's/\\//g' /var/etc/v2-ssr-reudp.json
+        	$ucmd -config /var/etc/v2-ssr-reudp.json >/dev/null 2>&1 &   
+    	fi
+   	fi
 	
 
 
@@ -554,7 +557,7 @@ start() {
 }
 
 boot() {
-	(sleep 5 && start >/dev/null 2>&1) &
+	(/usr/share/shadowsocksr/chinaipset.sh && sleep 5 && start >/dev/null 2>&1) &
 }
 
 stop() {
@@ -576,11 +579,17 @@ stop() {
 		killall -q -9 ssr-switch
 	fi
 
+	if [ $(uci_get_by_type global monitor_enable) = 1 ] ;then
+    	kill -9 $(ps | grep ssr-monitor | grep -v grep | awk '{print $1}') >/dev/null 2>&1
+	fi
+
+	killall -q -9 ssr-monitor
 	killall -q -9 ssr-redir
 	killall -q -9 ssr-tunnel
 	killall -q -9 ssr-server
 	killall -q -9 ssr-kcptun
 	killall -q -9 ssr-local
+	killall -q -9 v2ray
 
 	if [ -f /var/run/pdnsd.pid ] ;then
     	kill $(cat /var/run/pdnsd.pid) >/dev/null 2>&1

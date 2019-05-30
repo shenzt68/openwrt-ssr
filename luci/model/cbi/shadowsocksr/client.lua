@@ -34,8 +34,12 @@ o:value("", translate("Disable"))
 o:value("same", translate("Same as Global Server"))
 for k, v in pairs(server_table) do o:value(k, v) end
 
-o = s:option(Flag, "enable_multithreading", translate("Enable Multithreading"))
-o.rmempty = false
+o = s:option(ListValue, "threads", translate("Multi Threads Option"))
+o:value("0", translate("Auto Threads"))
+o:value("1", translate("1 Thread"))
+o:value("2", translate("2 Threads"))
+o:value("4", translate("4 Threads"))
+o:value("8", translate("8 Threads"))
 
 o = s:option(Flag, "monitor_enable", translate("Enable Process Monitor"))
 o.rmempty = false

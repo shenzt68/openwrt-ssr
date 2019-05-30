@@ -414,8 +414,23 @@ msgstr "UDPspeeder 项目地址"
 msgid "SSR Servers Manage"
 msgstr "SSR服务器管理"
 
-msgid "Enable Multithreading"
-msgstr "启用多线程"
+msgid "Multi Threads Option"
+msgstr "多线程并发转发"
+
+msgid "Auto Threads"
+msgstr "自动（CPU线程数）"
+
+msgid "1 Thread"
+msgstr "单线程"
+
+msgid "2 Threads"
+msgstr "双线程"
+
+msgid "4 Threads"
+msgstr "4 线程"
+
+msgid "8 Threads"
+msgstr "8 线程"
 
 msgid "Auto Update Server subscription, GFW list and CHN route"
 msgstr "自动更新服务器订阅、GFW列表和CHN路由表"

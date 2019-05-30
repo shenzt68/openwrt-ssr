@@ -51,6 +51,11 @@ function s.create(...)
 	end
 end
 
+o = s:option(DummyValue, "type", translate("Type"))
+function o.cfgvalue(...)
+	return Value.cfgvalue(...) or translate("")
+end
+
 o = s:option(DummyValue, "alias", translate("Alias"))
 function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
