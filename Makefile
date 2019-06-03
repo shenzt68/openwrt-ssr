@@ -9,7 +9,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openwrt-ssr
-PKG_VERSION:=3.3.1
+PKG_VERSION:=3.3.2
 # PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
@@ -43,16 +43,15 @@ define Package/openwrt-ssr/Default
 	DEPENDS:=$(3)
 endef
 
-
-Package/luci-app-shadowsocksR = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib)
-Package/luci-app-shadowsocksR-GFW = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib +dnsmasq-full +coreutils +coreutils-base64 +pdnsd-alt +wget +bash +bind-dig)
+Package/luci-app-shadowsocksR = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib +dnsmasq-full +coreutils +coreutils-base64 +pdnsd-alt +wget +bash +bind-dig)
+Package/luci-app-shadowsocksRV = $(call Package/openwrt-ssr/Default,openssl,(OpenSSL),+libopenssl +libpthread +ipset +ip-full +iptables-mod-tproxy +libpcre +zlib +dnsmasq-full +coreutils +coreutils-base64 +pdnsd-alt +wget +bash +bind-dig +v2ray)
 
 define Package/openwrt-ssr/description
 	LuCI Support for $(1).
 endef
 
 Package/luci-app-shadowsocksR/description = $(call Package/openwrt-ssr/description,shadowsocksr-libev Client)
-Package/luci-app-shadowsocksR-GFW/description = $(call Package/openwrt-ssr/description,shadowsocksr-libev GFW)
+Package/luci-app-shadowsocksRV/description = $(call Package/openwrt-ssr/description,shadowsocksr-libev and v2ray Client)
 
 define Package/openwrt-ssr/prerm
 #!/bin/sh
@@ -67,16 +66,16 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
 	commit firewall
 EOF
 	
-	if [ "$(1)" = "GFW" ] ;then
-		sed -i '/conf-dir/d' /etc/dnsmasq.conf
-		/etc/init.d/dnsmasq restart 
-	fi
+
+	sed -i '/conf-dir/d' /etc/dnsmasq.conf
+	/etc/init.d/dnsmasq restart 
+
 fi
 exit 0
 endef
 
 Package/luci-app-shadowsocksR/prerm = $(call Package/openwrt-ssr/prerm,shadowsocksr)
-Package/luci-app-shadowsocksR-GFW/prerm = $(call Package/openwrt-ssr/prerm,GFW)
+Package/luci-app-shadowsocksRV/prerm = $(call Package/openwrt-ssr/prerm,shadowsocksr)
 
 
 
@@ -105,35 +104,13 @@ endef
 
 
 Package/luci-app-shadowsocksR/postinst = $(call Package/openwrt-ssr/postinst,shadowsocksr)
-Package/luci-app-shadowsocksR-GFW/postinst = $(call Package/openwrt-ssr/postinst,GFW)
+Package/luci-app-shadowsocksRV/postinst = $(call Package/openwrt-ssr/postinst,shadowsocksr)
 
 CONFIGURE_ARGS += --disable-documentation --disable-ssp
 
 
+
 define Package/openwrt-ssr/install
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci
-	cp -pR ./luci/* $(1)/usr/lib/lua/luci
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-redir $(1)/usr/bin/ssr-redir
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-local $(1)/usr/bin/ssr-local	
-	$(LN) /usr/bin/ssr-local $(1)/usr/bin/ssr-tunnel
-	#$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-server $(1)/usr/bin/ssr-server		
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/ss-check $(1)/usr/bin/ssr-check
-	$(INSTALL_BIN) ./root/usr/bin/ssr-rules $(1)/usr/bin/ssr-rules
-	$(INSTALL_BIN) ./root/usr/bin/ssr-monitor $(1)/usr/bin/ssr-monitor
-	$(INSTALL_BIN) ./root/usr/bin/ssr-switch $(1)/usr/bin/ssr-switch
-	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DATA) ./root/etc/china_ssr.txt $(1)/etc/china_ssr.txt
-	$(INSTALL_DIR) $(1)/usr/share/shadowsocksr
-	$(INSTALL_DATA) ./root/usr/share/shadowsocksr/*.sh $(1)/usr/share/shadowsocksr/
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
-	po2lmo ./po/zh-cn/shadowsocksr.zh-cn.po $(1)/usr/lib/lua/luci/i18n/shadowsocksr.zh-cn.lmo
-endef
-
-Package/luci-app-shadowsocksR/install = $(call Package/openwrt-ssr/install,$(1),shadowsocksr)
-
-
-define Package/luci-app-shadowsocksR-GFW/install
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci
 	cp -pR ./luci/* $(1)/usr/lib/lua/luci
 	$(INSTALL_DIR) $(1)/usr/bin
@@ -147,5 +124,8 @@ define Package/luci-app-shadowsocksR-GFW/install
 	po2lmo ./po/zh-cn/shadowsocksr.zh-cn.po $(1)/usr/lib/lua/luci/i18n/shadowsocksr.zh-cn.lmo
 endef
 
+Package/luci-app-shadowsocksR/install = $(call Package/openwrt-ssr/install,$(1),shadowsocksr)
+Package/luci-app-shadowsocksRV/install = $(call Package/openwrt-ssr/install,$(1),shadowsocksr)
+
 $(eval $(call BuildPackage,luci-app-shadowsocksR))
-$(eval $(call BuildPackage,luci-app-shadowsocksR-GFW))
+$(eval $(call BuildPackage,luci-app-shadowsocksRV))
