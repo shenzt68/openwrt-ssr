@@ -24,7 +24,8 @@ function index()
 	entry({"admin", "services", "shadowsocksr", "check"}, call("check_status"))
 	entry({"admin", "services", "shadowsocksr", "refresh"}, call("refresh_data"))
     entry({"admin", "services", "shadowsocksr", "checkport"}, call("check_port"))
-    entry({"admin", "services", "shadowsocksr", "custom"},form("shadowsocksr/custom-list"),_("Custom List"), 40).leaf = true
+    entry({"admin", "services", "shadowsocksr", "custom"},cbi("shadowsocksr/custom-list"),_("Custom List"), 40).leaf = true
+    entry({"admin", "services", "shadowsocksr", "log"},cbi("shadowsocksr/log"),_("Log"), 40).leaf = true
   
 end
 
@@ -105,56 +106,6 @@ function refresh_data()
         end
         
         luci.sys.exec("rm -f /tmp/china_ssr.txt ")
-    
-    else
-        
-        local need_process = 0
-        
-        if nixio.fs.access("/usr/bin/wget-ssl") then
-            refresh_cmd="wget-ssl --no-check-certificate -O - https://easylist-downloads.adblockplus.org/easylistchina+easylist.txt > /tmp/adnew.conf"
-            need_process = 1
-        else
-            refresh_cmd="wget -O /tmp/ad.conf http://iytc.net/tools/ad.conf"
-        end
-        
-        sret=luci.sys.call(refresh_cmd .. " 2>/dev/null")
-        
-        if sret== 0 then
-            
-            if need_process == 1 then
-                luci.sys.call("/usr/bin/ssr-ad")
-            end
-            
-            icount = luci.sys.exec("cat /tmp/ad.conf | wc -l")
-            
-            if tonumber(icount)>1000 then
-            
-                if nixio.fs.access("/etc/dnsmasq.ssr/ad.conf") then
-                    oldcount=luci.sys.exec("cat /etc/dnsmasq.ssr/ad.conf | wc -l")
-                else
-                    oldcount=0
-                end
-    
-                if tonumber(icount) ~= tonumber(oldcount) then
-                    luci.sys.exec("cp -f /tmp/ad.conf /etc/dnsmasq.ssr/ad.conf")
-                    retstring=tostring(math.ceil(tonumber(icount)))
-                    
-                    if oldcount==0 then
-                        luci.sys.call("/etc/init.d/dnsmasq restart")
-                    end
-                
-                else
-                    retstring ="0"
-                end
-            
-            else
-                retstring ="-1"  
-            end
-            
-            luci.sys.exec("rm -f /tmp/ad.conf ")
-        else
-            retstring ="-1"
-        end
     
     end	
     
