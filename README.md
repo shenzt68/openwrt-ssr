@@ -4,7 +4,7 @@ ShadowsocksR-libev for OpenWrt
 简介
 ---
 
- 本项目是 [shadowsocksr-libev][1] 在 OpenWrt 上的移植  
+ 本项目是 [shadowsocksr-libev][1] 和 V2Ray (可选) 在 OpenWrt 上的移植  
 
  各平台预编译IPK请在本项目releases页面下载
 
@@ -13,11 +13,11 @@ ShadowsocksR-libev for OpenWrt
 
 软件包包含 [shadowsocksr-libev][1] 的可执行文件,以及luci控制界面  
 
-支持SSR客户端、服务端模式（服务端支持部分混淆模式、支持多端口）
+支持SSR客户端模式
 
 支持SOCK5代理；支持UDP中继；支持广告屏蔽
 
-支持两种运行模式：IP路由模式和GFW列表模式（GFWList）
+支持GFW列表模式（GFWList）
 
 所有进程自动守护，崩溃后自动重启；支持服务器自动切换；
 
@@ -27,29 +27,10 @@ ShadowsocksR-libev for OpenWrt
 
 支持 ssr:// url格式导入和导出服务器配置信息
 
-支持服务器订阅功能(需额外安装以下软件包)
-
-可选依赖               | 作用
--------------------|--------------------
-`dnsmasq-full`     | DNS 域名污染列表解析
-`wget`             | 获取服务器订阅数据
-`coreutils-base64` | base64 解码 DNS 域名污染列表和服务器订阅数据
-`bash`             | 服务器订阅脚本使用 bash 解释器运行
-`bind-dig`         | 用于订阅脚本解析域名
-
-软件包不显式这些依赖，会根据用户安装的依赖启用相应的功能.
+支持服务器订阅功能
 
 运行模式介绍
 ---
-
-【IP路由模式】
-
-- 所有国内IP网段不走代理，国外IP网段走代理；
-- 白名单模式：缺省都走代理，列表中IP网段不走代理
-
-优点：国内外分流清晰明确；适合线路好SSR服务器，通过代理可提高访问国外网站的速度；
-
-缺点：开启BT下载时，如连接国外的IP，会损耗SSR服务器的流量；如果SSR服务器线路不好，通过代理访问国外网站的速度不如直连
 
 【GFW列表模式】
 
@@ -58,11 +39,7 @@ ShadowsocksR-libev for OpenWrt
 
 优点：目标明确，只有访问列表中网站才会损耗SSR服务器流量
 
-缺点：GFW列表并不能100%涵盖被墙站点，而且有些国外站点直连速度远不如走代理
-
-注意：如果要使用SSR for OpenWRT的服务端接收手机的接入（通过3G/4G网络），请使用IP路由模式，原因是手机通过无线网络接入OpenWRT服务端，手机上如果要访问google，它使用的是手机上的DNS解析，域名解析是被污染的，指向的是一个随机IP，此IP不能和GFW列表匹配，因此如果使用GFW模式，将不能科学上网。
-
-如果在IP路由模式下代理正常，在GFW列表模式下无法正常访问，请检查DNS解析是否正确（服务器是否开启UDP转发、是否有其他dns软件冲突等）
+缺点：GFW列表并不能100%涵盖被墙站点，而且有些国外站点直连速度远不如走代理（可通过自定义黑名单添补）
 
 编译
 ---
@@ -86,8 +63,8 @@ ShadowsocksR-libev for OpenWrt
    git clone https://github.com/MrTheUniverse/openwrt-ssr.git package/openwrt-ssr
    # 选择要编译的包
    #luci ->3. Applications-> luci-app-shadowsocksR         原始版本
-   #luci ->3. Applications-> luci-app-shadowsocksR-GFW     GFWList版本
-   #V1.1.6以后版本取消发布单独的客户端和服务端，如有需要，请修改makefile或采用V1.1.5版本
+   #luci ->3. Applications-> luci-app-shadowsocksRV        V2Ray版本
+   #V3.3以后版本取消发布单独的IP路由模式，只发布GFWList版本
    make menuconfig
 
    # 开始编译
@@ -105,25 +82,20 @@ ShadowsocksR-libev for OpenWrt
 
 本软件包依赖库：libopenssl、libpthread、ipset、ip、iptables-mod-tproxy、libpcre，GFW版本还需依赖dnsmasq-full、coreutils-base64，opkg会自动安装上述库文件
 
-软件编译后可生成两个软件包，分别是luci-app-shadowsocksR（原始版本）、luci-app-shadowsocksR-GFW（GFW版本），用户根据需要选择其中一个安装即可
+软件编译后可生成两个软件包，分别是luci-app-shadowsocksR（原始版本）、luci-app-shadowsocksRV（兼容V2Ray版本），用户根据需要选择其中一个安装即可
 
-原始版本只支持IP路由模式，对现有OpenWRT系统改动较少；本地dns域名解析存在污染，由远端SSR服务器重新进行二次DNS解析；可和其他DNS处理软件一起使用；
+原始版本只支持SSR和老版本的SS，luci-app-shadowsocksRV兼容V2Ray的vmess协议
 
-GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，会接管OpenWRT的域名处理，避免域名污染并实现准确分流；SSR服务器侧需开启UDP转发；
+提醒：如果安装本软件，请停用当前针对域名污染的其他处理软件，不要占用UDP 5353端口
 
-提醒：如果安装GFW版本，请停用当前针对域名污染的其他处理软件，不要占用UDP 5353端口
-
-将编译成功的luci-app-shadowsocksR*_all.ipk通过winscp上传到路由器的/tmp目录，执行命令：
+将编译成功的luci-app-shadowsocksR*_*.ipk通过winscp上传到路由器的/tmp目录，执行命令：
 
    ```bash
    #刷新opkg列表
    opkg update
 
-   #删除dnsmasq（GFW版本第一次安装需手动卸载dnsmasq，其他情况下不需要）
-   opkg remove dnsmasq
-
    #安装软件包
-   opkg install /tmp/luci-app-shadowsocksR*_all.ipk
+   opkg install /tmp/luci-app-shadowsocksR*_*.ipk
    ```
 
 如要启用KcpTun，需从本项目releases页面或相关网站（[网站1][4]、[网站2][7]）下载路由器平台对应的二进制文件，并将文件名改为ssr-kcptun，放入/usr/bin目录
@@ -167,9 +139,8 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
    启用自动切换                | 启用后如果缺省代理服务器失效，可以自动切换到其他可用的代理服务器
    自动切换检查周期            | 检查当前代理服务器是否有效的时间周期，默认10分钟（600秒）
    切换检查超时时间            | 检查服务器端口或网络连通性的超时时间，默认3秒钟
-   DNS解析方式                 | 用UDP隧道方式还是Pdnsd方式（TCP）来解析域名（GFW版本特有，安装pdnsd后显示）
-   启用隧道（DNS）转发         | 开启DNS隧道（原始版本特有）
-   隧道（DNS）本地端口         | DNS隧道本地端口（原始版本特有，GFW固定为5353）
+   DNS解析方式                 | 用UDP隧道方式还是Pdnsd方式（TCP）来解析域名
+   启用隧道（DNS）转发         | 开启DNS隧道
    DNS服务器地址和端口         | DNS请求转发的服务器，一般设置为google的dns地址
    SOCKS5代理-服务器           | 用于SOCKS代理的SSR服务器
    SOCKS5代理-本地端口         | 用于SOCKS代理的本地端口（注意此端口不能和SSR服务器配置中的本地端口相同）
@@ -184,19 +155,11 @@ GFW版本支持IP路由模式和GFW列表模式，需卸载原有的dnsmasq，�
 
    如要打开kcptun的日志，可以在kcptun参数栏填入"--nocomp --log /var/log/kcptun.log"，日志会保存在指定文件中
 
-   IP路由模式的数据文件为/etc/china_ssr.txt,包含国内所有IP网段，一般很少变动，无需更新，如要更新，请在“状态”页面更新
-
-   GFW列表模式的数据文件为/etc/dnsmasq.ssr/gfw_list.conf，包含所有被墙网站，如需更新，请在“状态”页面更新
-
-   广告过滤为GFW版本特有，数据文件为/etc/dnsmasq.ssr/ad.conf，其原理是将广告网站的IP地址解析为127.0.0.1，使用的数据库为easylistchina+easylist；广告过滤模块缺省未安装，用户在“状态”页面更新广告数据库后自动打开，如打开广告过滤后出现问题，请删除此文件并重启dnsmasq
-
    自动切换说明：在服务器配置中如果某些服务器启用了自动切换开关，这些服务器就组成一个可以自动切换的服务器集合，当这些服务器中的某一个作为全局服务器使用，并打开了全局自动切换开关时，如果全局服务器故障，会自动在集合中寻找可用的服务器进行切换。你可以设置检测周期和超时时间。每次检测时会判断缺省服务器是否恢复正常，如果正常，会自动切换回缺省服务器。注：自动切换功能依赖路由器的检测，因此在“路由器访问控制”中应该设置为“正常代理”
 
    自动切换和进程监控的日志可以在OpenWRT的“系统日志”中查看
 
-   GFW版本缺省使用DNS隧道（UDP）方式解析域名，要求SS/SSR服务器支持UDP转发。如果服务器不支持UDP转发或UDP方式的解析存在问题，可以使用Pdnsd，以TCP方式来进行DNS域名解析。
-
-   官方openssl的ipk在编译时去除了camellia和idea加密算法，如果使用官方的libopenssl，将无法使用这两种加密方式，如需使用，请重新编译openssl进行替换
+   缺省使用pdnsd以TCP方式解析域名，也可使用DNS隧道转发，但要求SS/SSR服务器支持UDP转发。官方openssl的ipk在编译时去除了camellia和idea加密算法，如果使用官方的libopenssl，将无法使用这两种加密方式，如需使用，请重新编译openssl进行替换
 
 问题和建议反馈
 ---

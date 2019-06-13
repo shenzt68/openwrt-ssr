@@ -437,3 +437,6 @@ msgstr "自动更新服务器订阅、GFW列表和CHN路由表"
 
 msgid "Log"
 msgstr "日志"
+
+msgid "Server Node Type"
+msgstr "节点类型"
