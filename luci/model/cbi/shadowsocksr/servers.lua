@@ -7,7 +7,7 @@ uci:foreach("shadowsocksr", "servers", function(s)
 	server_count = server_count + 1
 end)
 
-m = Map(shadowsocksr,  translate("SSR Servers Manage"))
+m = Map(shadowsocksr,  translate("Servers Manage"))
 
 -- Server Subscribe
 
@@ -31,9 +31,9 @@ o.rmempty = false
 o = s:option(DynamicList, "subscribe_url", translate("Subscribe URL"))
 o.rmempty = true
 
-o = s:option(Button,"update",translate("Update"))
+o = s:option(Button,"update",translate("Update Now"))
 o.write = function()
-	luci.sys.call("bash /usr/share/shadowsocksr/subscribe.sh >>/tmp/ssrplus.log 2>&1")
+	luci.sys.call("bash /usr/share/shadowsocksr/auto_update.sh >>/tmp/openwrt-ssr.log 2>&1")
 	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "servers"))
 end
 

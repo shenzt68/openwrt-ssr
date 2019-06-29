@@ -1,5 +1,4 @@
 #!/bin/bash
-# Copyright (C) 2017 XiaoShan https://www.mivm.cn
 
 . /usr/share/libubox/jshn.sh
 
@@ -11,7 +10,7 @@ urlsafe_b64decode() {
 }
 
 echo_date(){
-	echo $(TZ=UTC-8 date -R +%Y-%m-%d\ %X):$1
+	echo $(date -R +%Y-%m-%d\ %X): $1
 }
 
 Server_Update() {
@@ -45,20 +44,22 @@ Server_Update() {
 }
 
 name=shadowsocksr
+
+echo_date "Updating Subscription..."
+
 subscribe_url=($(uci get $name.@server_subscribe[0].subscribe_url))
 [ ${#subscribe_url[@]} -eq 0 ] && exit 1
 [ $(uci -q get $name.@server_subscribe[0].proxy || echo 0) -eq 0 ] && /etc/init.d/$name stop >/dev/null 2>&1
 log_name=${name}_subscribe
 for ((o=0;o<${#subscribe_url[@]};o++))
 do
-	echo_date "从 ${subscribe_url[o]} 获取订阅"
-	echo_date "开始更新在线订阅列表..."
-	echo_date "开始下载订阅链接到本地临时文件，请稍等..."
+	echo_date "Updating from ${subscribe_url[o]}"
+	echo_date "Downloading the link，please wait..."
 	subscribe_data=$(wget-ssl --user-agent="User-Agent: Mozilla" --no-check-certificate -T 3 -O- ${subscribe_url[o]})
 	curl_code=$?
 	if [ ! $curl_code -eq 0 ];then
-		echo_date "下载订阅成功..."
-		echo_date "开始解析节点信息..."
+		echo_date "Subscription data downloaded..."
+		echo_date "Resolving node info..."
 		subscribe_data=$(wget-ssl --no-check-certificate -T 3 -O- ${subscribe_url[o]})
 		curl_code=$?
 	fi
@@ -83,7 +84,7 @@ do
 			else
 				subscribe_max=${#ssr_url[@]}
 			fi
-			echo_date "共计$subscribe_max个节点"
+			echo_date "$subscribe_max nodes in total"
 			ssr_group=$(urlsafe_b64decode $(urlsafe_b64decode ${ssr_url[$((${#ssr_url[@]} - 1))]//ssr:\/\//} | sed 's/&/\n/g' | grep group= | awk -F = '{print $2}'))
 			if [ -z "$ssr_group" ]; then
 				ssr_group="default"
@@ -166,7 +167,7 @@ do
 			Server_Update $uci_name_tmp
 			subscribe_x=$subscribe_x$ssr_host" "
 			ssrtype=$(echo $ssr_type | tr '[a-z]' '[A-Z]')
-			echo_date "$ssrtype节点：【$ssr_remarks】"
+			echo_date "$ssrtype node：【$ssr_remarks】"
 
 			# echo "服务器地址: $ssr_host"
 			# echo "服务器端口 $ssr_port"
@@ -186,18 +187,48 @@ do
 				subscribe_o=$(($subscribe_o + 1))
 			fi
 		done
-		echo_date "本次更新订阅来源 【$ssr_group】 服务器数量: ${#ssr_url[@]} 新增服务器: $subscribe_n 删除服务器: $subscribe_o"
-		echo_date "在线订阅列表更新完成!请等待网页自动刷新!"
-		subscribe_log="$ssr_group 服务器订阅更新成功 服务器数量: ${#ssr_url[@]} 新增服务器: $subscribe_n 删除服务器: $subscribe_o"
+		echo_date "Subscription Source:【$ssr_group】 Number of nodes: ${#ssr_url[@]} New nodes: $subscribe_n Deleted nodes: $subscribe_o"
+		echo_date "Subscription update completed!"
+		subscribe_log="$ssr_group Subscription update completed! Number of nodes: ${#ssr_url[@]} New nodes: $subscribe_n Deleted nodes: $subscribe_o"
 		logger -st $log_name[$$] -p6 "$subscribe_log"
 		uci commit $name
 	else
-		echo_date "${subscribe_url[$o]} 订阅数据解析失败 无法获取 Group"
-		logger -st $log_name[$$] -p3 "${subscribe_url[$o]} 订阅数据解析失败 无法获取 Group"
+		echo_date "${subscribe_url[$o]} Fail to resolve subscription data, unable to get Group"
+		logger -st $log_name[$$] -p3 "${subscribe_url[$o]} Fail to resolve subscription data, unable to get Group"
 	fi
 else
-	echo_date "${subscribe_url[$o]} 订阅数据获取失败 错误代码: $curl_code"
-	logger -st $log_name[$$] -p3 "${subscribe_url[$o]} 订阅数据获取失败 错误代码: $curl_code"
+	echo_date "${subscribe_url[$o]} Fail to get subscription data, error code: $curl_code"
+	logger -st $log_name[$$] -p3 "${subscribe_url[$o]} Fail to get subscription data, error code: $curl_code"
 fi
 done
+
+echo_date "Updating CHN Route..."
+
+chnroute_data=$(wget http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest)
+[ $? -eq 0 ] && {
+    echo "$chnroute_data" | grep ipv4 | grep CN | awk -F\| '{ printf("%s/%d\n", $4, 32-log($5)/log(2)) }' > /tmp/china_ssr.txt
+}
+
+if [ -s "/tmp/china_ssr.txt" ];then
+  if ( ! cmp -s /tmp/china_ssr.txt /etc/china_ssr.txt );then
+    mv /tmp/china_ssr.txt /etc/china_ssr.txt
+  fi
+fi
+
+/usr/share/shadowsocksr/chinaipset.sh
+
+echo_date "CHN Route Update Completed..."
+
+echo_date "Updating GFW List..."
+
+wget-ssl --no-check-certificate https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt -O /tmp/gfw.b64
+/usr/bin/ssr-gfw
+
+if [ -s "/tmp/gfwnew.txt" ];then
+  if ( ! cmp -s /tmp/gfwnew.txt /etc/dnsmasq.ssr/gfw_list.conf );then
+    mv /tmp/gfwnew.txt /etc/dnsmasq.ssr/gfw_list.conf
+  fi
+fi
+echo_date "GFW List Update Completed..."
+
 /etc/init.d/$name restart >/dev/null 2>&1

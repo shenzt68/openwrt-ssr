@@ -9,7 +9,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openwrt-ssr
-PKG_VERSION:=3.3.3
+PKG_VERSION:=3.3.4
 # PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
@@ -68,6 +68,7 @@ EOF
 	
 
 	sed -i '/conf-dir/d' /etc/dnsmasq.conf
+	rm -f /tmp/openwrt-ssr.log
 	/etc/init.d/dnsmasq restart 
 
 fi

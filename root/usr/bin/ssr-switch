@@ -145,7 +145,7 @@ start() {
         		CURRENT_SERVER=$ENABLE_SERVER
         		switch_proxy $CURRENT_SERVER
         		normal_flag=1
-        		echo "$(date "+%Y-%m-%d %H:%M:%S") ShadowsocksR server switch OK" >> /tmp/openwrt-ssr.log
+        		echo "$(date "+%Y-%m-%d %H:%M:%S") Server switch OK" >> /tmp/openwrt-ssr.log
       		else
         		normal_flag=0 
       		fi
